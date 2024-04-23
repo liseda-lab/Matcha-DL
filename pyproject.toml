@@ -15,6 +15,12 @@ isort = "^5.13.2"
 mypy = "^1.9.0"
 pytest = "^8.1.1"
 
+
+[tool.poetry.group.core.dependencies]
+dill = "^0.3.8"
+lxml = "^5.2.1"
+pandas = "^2.2.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
