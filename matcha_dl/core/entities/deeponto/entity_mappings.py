@@ -8,6 +8,8 @@ from deeponto import SavedObj
 
 from collections import defaultdict
 
+import pandas as pd
+
 
 class EntityMapping:
     def __init__(
