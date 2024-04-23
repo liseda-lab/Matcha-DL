@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "matcha-dl"
+version = "0.1.0"
+description = ""
+authors = ["pedro <pgcotovio@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[tool.poetry.group.prebuild.dependencies]
+flake8 = "^7.0.0"
+isort = "^5.13.2"
+mypy = "^1.9.0"
+pytest = "^8.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# isort
+[tool.isort]
+profile = "black"
+# black
+[tool.black]
+line_length = 100
+extend_skip = [".md", ".json"]
+multi_line_output=3
+force_grid_wrap = 0
+
+# mypy
+[tool.mypy]
+warn_return_any = true
+warn_unused_configs = true
+files = ["data_conversion/**/*.py", "tests/**/*.py"]
