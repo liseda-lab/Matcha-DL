@@ -3,6 +3,8 @@ import pandas as pd
 
 from typing import Dict, List, Union
 
+from matcha_dl.core.entities.dataset import MlpDataset
+
 class MainProcessor:
 
 
@@ -71,7 +73,7 @@ class MainProcessor:
 
         dataset.rename(columns={'Score': 'Labels'}, inplace=True)
 
-        return dataset
+        return MlpDataset(dataset, ref=self.refs, candidates=self.candidates)
 
     def _matcha_scores_to_dict(self, csv_file: str) -> Dict:
         """Reads matcha scores file and parses it into a dict.

@@ -4,11 +4,14 @@ from typing import Optional, Dict
 
 from matcha_dl.core.contracts.negative_sampler import INegativeSampler
 from matcha_dl.core.entities.deeponto.anchor_mappings import AnchoredOntoMappings
+from matcha_dl.core.entities.dataset import MlpDataset
 
 import numpy as np
 import pandas as pd
 
 PROCESSOR = 'processor'
+
+DataFrame = pd.DataFrame
 
 
 class IProcessor:
@@ -17,7 +20,7 @@ class IProcessor:
 
         Attributes:
             matcha_scores (Dict): The matcha scores.
-            refs (pd.DataFrame): The reference data.
+            refs (DataFrame): The reference data.
             sampler (INegativeSampler): The sampler.
             candidates (AnchoredOntoMappings): The ranking candidates.
             random (np.random.RandomState): The random state.
@@ -67,11 +70,11 @@ class IProcessor:
         return self._matcha_scores
     
     @property
-    def refs(self) -> pd.DataFrame:
+    def refs(self) -> DataFrame:
         """Gets the reference data.
 
         Returns:
-            pd.DataFrame: The reference data.
+            DataFrame: The reference data.
         """
         return self._refs
     
@@ -103,11 +106,11 @@ class IProcessor:
         return np.random.RandomState(self._seed)
     
     @abstractmethod
-    def process(self) -> pd.DataFrame:
+    def process(self) -> MlpDataset:
         """Processes the data.
 
         Returns:
-            pd.DataFrame: The processed data.
+            MlpDataset: The processed data.
         """
         pass
 
