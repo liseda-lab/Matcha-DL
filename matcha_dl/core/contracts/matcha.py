@@ -3,13 +3,15 @@ import os
 import subprocess
 from abc import abstractmethod
 
+MATCHA = 'matcha'
+
 class IMatcha:
-    def __init__(self, output_file: str = 'output.csv') -> None:
+    def __init__(self, output_file: str = 'matcha_scores.csv') -> None:
         """
         Initialize Matcher.
 
         Args:
-            output_file (str): The path to the output file. Defaults to 'output.csv'.
+            output_file (str): The path to the output file. Defaults to 'matcha_scores.csv'.
         """
         self.output_file = Path(output_file)
 
