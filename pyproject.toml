@@ -2,7 +2,7 @@
 name = "matcha-dl"
 version = "0.1.0"
 description = ""
-authors = ["pedro <pgcotovio@gmail.com>"]
+authors = ["Pedro Cotovio <pgcotovio@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

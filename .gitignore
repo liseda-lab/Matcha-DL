@@ -1,2 +1,6 @@
 *.jar
 *.DS_Store
+
+# Matcha folder
+
+/matcha_dl/impl/matcha/matcha/*

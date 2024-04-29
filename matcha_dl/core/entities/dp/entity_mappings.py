@@ -2,9 +2,10 @@
 
 from typing import Optional, List, Tuple
 from matcha_dl.core.values import DEFAULT_REL, DEFAULT_DUP_STRATEGY, DUP_STRATEGIES
-from matcha_dl.impl.deeponto.utils import read_table, sort_dict_by_values
+from matcha_dl.impl.dp.utils import sort_dict_by_values
+from deeponto.utils import read_table
 
-from deeponto import SavedObj
+from dp import SavedObj
 
 from collections import defaultdict
 

@@ -1,11 +1,10 @@
 
-from deeponto import SavedObj, EntityMapping, EntityMappingList, OntoMappings
+from dp import SavedObj, EntityMapping, EntityMappingList, OntoMappings
+from deeponto.utils import read_table
 
 from typing import Optional
 from matcha_dl.core.values import DEFAULT_REL, DEFAULT_DUP_STRATEGY
-from matcha_dl.impl.deeponto.utils import read_table, sort_dict_by_values
-
-from deeponto import SavedObj
+from matcha_dl.impl.dp.utils import sort_dict_by_values
 
 from collections import defaultdict
 
