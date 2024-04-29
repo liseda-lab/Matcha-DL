@@ -6,14 +6,21 @@ from abc import abstractmethod
 MATCHA = 'matcha'
 
 class IMatcha:
-    def __init__(self, output_file: str = 'matcha_scores.csv') -> None:
+    def __init__(self, threshold: float, cardinality: int, output_file: str = 'matcha_scores.csv', max_heap='8G') -> None:
         """
         Initialize Matcher.
 
         Args:
+            threshold (float): The threshold to use for matching.
+            cardinality (int): The cardinality to use for matching.
             output_file (str): The path to the output file. Defaults to 'matcha_scores.csv'.
+            max_heap (str): The maximum heap size to use for the Java Virtual Machine. Defaults to '8G'.
         """
+
+        self.threshold = threshold
+        self.cardinality = cardinality
         self.output_file = Path(output_file)
+        self.max_heap = max_heap
 
     @abstractmethod
     @property
@@ -63,7 +70,7 @@ class IMatcha:
             current_cwd = os.getcwd()
             os.chdir(self.matcha_path)
 
-            subprocess.call(['java', '-jar', str(self.jar_path), str(ont1), str(ont2), str(self.output_file)])
+            subprocess.call(['java', '-jar', f'-Xmx{self.max_heap}', str(self.jar_path), str(ont1), str(ont2), str(self.output_file), str(self.threshold), str(self.cardinality), "true"])
 
             os.chdir(current_cwd)
 

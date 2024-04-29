@@ -6,14 +6,15 @@ import tqdm
 from torch.utils.data import DataLoader, TensorDataset
 import torch as th
 
-from matcha_dl.core.contracts.trainer import ITrainer, EntityMapping
+from matcha_dl.core.contracts.trainer import ITrainer, MLPDataset, EntityMapping
+from typing import Optional
 
 import numpy as np
 
 
 class MLPTrainer(ITrainer):
 
-    def train(self, epochs=50, batch_size=None, save_interval=5):
+    def train(self, dataset: MLPDataset, epochs=50, batch_size=None, save_interval=5):
 
         warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -53,7 +54,10 @@ class MLPTrainer(ITrainer):
         # TODO add AML repair
         pass
 
-    def predict(self, **kwargs):
+    def predict(self, dataset: Optional[MLPDataset] = None, **kwargs):
+
+        if not dataset:
+            raise ValueError("Dataset is required for prediction")
 
         kind = "inference"
         

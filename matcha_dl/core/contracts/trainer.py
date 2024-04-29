@@ -7,7 +7,7 @@ from torch.optim import Optimizer as TorchOptimizer
 from matcha_dl.core.contracts.loss import ILoss
 from matcha_dl.core.contracts.stopper import IStopper
 
-from matcha_dl.impl.deeponto.utils import fill_anchored_scores
+from matcha_dl.impl.dp.utils import fill_anchored_scores
 
 from deeponto.align.mapping import EntityMapping as DeepOntoEntityMapping
 
@@ -27,6 +27,8 @@ import pandas as pd
 Module = TorchModule
 Optimizer = TorchOptimizer
 
+TRAINER = 'trainer'
+
 
 def set_seed(seed_val: int = 888):
     """Set random seed for reproducible results
@@ -41,7 +43,6 @@ def set_seed(seed_val: int = 888):
 class ITrainer:
 
     def __init__(self,
-                 dataset: MLPDataset,
                  model: Module,
                  loss: ILoss,
                  optimizer: Optimizer,
@@ -55,7 +56,7 @@ class ITrainer:
         
         # Load Args
         
-        self._dataset = dataset
+        self._dataset = None
         self._device = device
         self._model = model(**model_params).to(self.device)
         self._optimizer = optimizer(self._model.parameters())
@@ -135,7 +136,7 @@ class ITrainer:
         return [x.name for x in self.checkpoints_dir.glob('**/*') if x.is_file()]
     
     @abstractmethod
-    def train(self, epochs: Optional[int] = 100, batch_size: Optional[int] = None):
+    def train(self, dataset: MLPDataset, epochs: Optional[int] = 100, batch_size: Optional[int] = None):
         pass
 
     @abstractmethod
@@ -143,7 +144,7 @@ class ITrainer:
         pass
 
     @abstractmethod
-    def predict(self, **kwargs):
+    def predict(self, dataset: Optional[MLPDataset] = None, **kwargs):
         pass
 
     def save_alignment(self, preds: List[EntityMapping]):

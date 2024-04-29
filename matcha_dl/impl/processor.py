@@ -8,7 +8,7 @@ from matcha_dl.core.entities.dataset import MlpDataset
 class MainProcessor:
 
 
-    def process(self) -> pd.DataFrame:
+    def _process(self) -> pd.DataFrame:
         """Processes the data.
 
         Returns:
@@ -88,7 +88,7 @@ class MainProcessor:
         df = pd.read_csv(csv_file)
 
         return {src_ent:
-                    {row['Entity 2']: row[['LM', 'WM', 'SM', 'BKM']].values.tolist()
+                    {row['Entity 2']: row[['LM', 'WM', 'SM', 'BKM', 'LLMM']].values.tolist()
                      for _, row in df[df['Entity 1'] == src_ent].iterrows()}
                 for src_ent in df['Entity 1'].unique()}
 
@@ -112,7 +112,7 @@ class MainProcessor:
                 feats.append(scores)
                 flag += 1
             else:
-                feats.append(self.random.uniform(low=0.0, high=0.4, size=(4,)).tolist())
+                feats.append(self.random.uniform(low=0.0, high=0.4, size=(5,)).tolist())
 
         dataset['Features'] = feats
 

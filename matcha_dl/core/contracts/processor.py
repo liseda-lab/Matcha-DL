@@ -3,7 +3,7 @@ from abc import abstractmethod
 from typing import Optional, Dict
 
 from matcha_dl.core.contracts.negative_sampler import INegativeSampler
-from matcha_dl.core.entities.deeponto.anchor_mappings import AnchoredOntoMappings
+from matcha_dl.core.entities.dp.anchor_mappings import AnchoredOntoMappings
 from matcha_dl.core.entities.dataset import MlpDataset
 
 import numpy as np
@@ -26,38 +26,19 @@ class IProcessor:
             random (np.random.RandomState): The random state.
     """
         
-    def __init__(self, scores_file: str, ref_file: Optional[str] = None, sampler: Optional[INegativeSampler] = None, cands_file: Optional[str] = None, seed: int = 42):
+    def __init__(self, sampler: Optional[INegativeSampler] = None, seed: Optional[int] = 42):
             
         """
 
         Args:
-            scores_file (str): The scores file.
-            ref_file (str, optional): The reference file. Defaults to None.
             sampler (INegativeSampler, optional): The sampler. Defaults to None.
-            cands_file (str, optional): The candidates file. Defaults to None.
             seed (int, optional): The seed for the random state. Defaults to 42.
         """
 
-        self._matcha_scores = self._matcha_scores_to_dict(scores_file)
-
-        if ref_file:
-            self._refs = pd.read_csv(str(ref_file), sep='\t')
-
-            # if refs exist sampler must not be None
-            self._sampler = sampler
-
-            if not self.sampler:
-                raise ValueError("Sampler must be provided if ref file is provided")
-
-        else:
-            self._refs = None
-            
-        if cands_file:
-            self._cands = AnchoredOntoMappings.read_table_mappings(str(cands_file)).unscored_cand_maps()
-
-        else:
-            self._cands = None
-
+        self._matcha_scores = None
+        self._refs = None
+        self._sampler = sampler
+        self._cands = None
         self._seed = seed
 
     @property
@@ -105,13 +86,35 @@ class IProcessor:
         """
         return np.random.RandomState(self._seed)
     
-    @abstractmethod
-    def process(self) -> MlpDataset:
+    def process(self, scores_file: str, ref_file: Optional[str] = None, cands_file: Optional[str] = None) -> MlpDataset:
         """Processes the data.
+
+        Args:
+            scores_file (str): The scores file.
+            ref_file (str, optional): The reference file. Defaults to None.
+            cands_file (str, optional): The candidates file. Defaults to None.
 
         Returns:
             MlpDataset: The processed data.
         """
+        
+        self._matcha_scores = self._matcha_scores_to_dict(scores_file)
+
+        if ref_file:
+            self._refs = pd.read_csv(str(ref_file), sep='\t')
+
+            # if refs exist sampler must not be None
+
+            if not self.sampler:
+                raise ValueError("If ref file is provided, sampler must be provided")
+            
+        if cands_file:
+            self._cands = AnchoredOntoMappings.read_table_mappings(str(cands_file)).unscored_cand_maps()
+
+        self._process()
+    
+    @abstractmethod
+    def _process(self):
         pass
 
     @abstractmethod

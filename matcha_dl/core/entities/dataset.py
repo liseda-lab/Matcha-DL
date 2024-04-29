@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from typing import Optional
 
-from matcha_dl.core.entities.deeponto.anchor_mappings import AnchoredOntoMappings
+from matcha_dl.core.entities.dp.anchor_mappings import AnchoredOntoMappings
 
 DataFrame = pd.DataFrame
 
