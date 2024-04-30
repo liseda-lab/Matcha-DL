@@ -16,7 +16,7 @@ torch = "^2.3.0"
 deeponto = "^0.9.1"
 
 [tool.poetry.scripts]
-embeddings = "matcha_dl.cli:main"
+matchadl = "matcha_dl.cli:main"
 
 
 [tool.poetry.group.prebuild.dependencies]
