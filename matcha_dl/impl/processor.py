@@ -1,12 +1,12 @@
+from typing import Dict, List, Union
 
 import pandas as pd
 
-from typing import Dict, List, Union
-
 from matcha_dl.core.entities.dataset import MlpDataset
+from matcha_dl.core.contracts.processor import IProcessor
 
-class MainProcessor:
 
+class MainProcessor(IProcessor):
 
     def _process(self) -> pd.DataFrame:
         """Processes the data.
@@ -14,34 +14,36 @@ class MainProcessor:
         Returns:
             pd.DataFrame: The processed data.
         """
-        
+
         if self.refs:
 
             # get training set
 
             # get positive samples from refs
-            positive_set = self._refs
+            positive_set = self.refs
 
             # get negative samples from sampler
-            negative_set = self.sampler.sample(positive_set['SrcEntity'], positive_set['TgtEntity'])
+            negative_set = self.sampler.sample(positive_set["SrcEntity"], positive_set["TgtEntity"])
 
             # combine positive and negative samples
             training_set = pd.concat([positive_set, negative_set], ignore_index=True)
 
             # get scores features from matcha
             training_set = self._get_scores(training_set)
-            
+
             # assign training label
-            training_set['train'] = True
-            training_set['inference'] = False
+            training_set["train"] = True
+            training_set["inference"] = False
 
             training_set = training_set.sample(frac=1).reset_index(drop=True)
 
-        # Inference set
+            # Inference set
 
             # get all sources not in refs
 
-            inference_sources = set(self.matcha_scores.keys()) - set(self.refs['SrcEntity'].unique())
+            inference_sources = set(self.matcha_scores.keys()) - set(
+                self.refs["SrcEntity"].unique()
+            )
 
         else:
 
@@ -49,14 +51,15 @@ class MainProcessor:
 
             inference_sources = self.matcha_scores.keys()
 
-
         if self.candidates:
-            
+
             # if get sources from candidates instead of refs
 
             inference_sources = self.candidates.map_dict.keys()
 
-        inference_set = pd.DataFrame(self._get_cands(inference_sources), columns=['SrcEntity', 'TgtEntity', 'Score'])
+        inference_set = pd.DataFrame(
+            self._get_cands(inference_sources), columns=["SrcEntity", "TgtEntity", "Score"]
+        )
 
         # get scores features from matcha
 
@@ -64,14 +67,14 @@ class MainProcessor:
 
         # assign inference label
 
-        inference_set['train'] = False
-        inference_set['inference'] = True
+        inference_set["train"] = False
+        inference_set["inference"] = True
 
         # combine training and inference sets
 
         dataset = pd.concat([training_set, inference_set], ignore_index=True)
 
-        dataset.rename(columns={'Score': 'Labels'}, inplace=True)
+        dataset.rename(columns={"Score": "Labels"}, inplace=True)
 
         return MlpDataset(dataset, ref=self.refs, candidates=self.candidates)
 
@@ -84,13 +87,16 @@ class MainProcessor:
         Returns:
             Dict: The dictionary of matcha scores.
         """
-        
+
         df = pd.read_csv(csv_file)
 
-        return {src_ent:
-                    {row['Entity 2']: row[['LM', 'WM', 'SM', 'BKM', 'LLMM']].values.tolist()
-                     for _, row in df[df['Entity 1'] == src_ent].iterrows()}
-                for src_ent in df['Entity 1'].unique()}
+        return {
+            src_ent: {
+                row["Entity 2"]: row[["LM", "WM", "SM", "BKM", "LLMM"]].values.tolist()
+                for _, row in df[df["Entity 1"] == src_ent].iterrows()
+            }
+            for src_ent in df["Entity 1"].unique()
+        }
 
     def _get_scores(self, dataset: pd.DataFrame) -> pd.DataFrame:
         """Adds matcha scores to the dataset.
@@ -106,7 +112,7 @@ class MainProcessor:
         flag = 0
 
         for _, row in dataset.iterrows():
-            scores = self.matcha_scores.get(row['SrcEntity'], {}).get(row['TgtEntity'], [])
+            scores = self.matcha_scores.get(row["SrcEntity"], {}).get(row["TgtEntity"], [])
 
             if scores:
                 feats.append(scores)
@@ -114,7 +120,7 @@ class MainProcessor:
             else:
                 feats.append(self.random.uniform(low=0.0, high=0.4, size=(5,)).tolist())
 
-        dataset['Features'] = feats
+        dataset["Features"] = feats
 
         return dataset
 
@@ -133,11 +139,19 @@ class MainProcessor:
             # Local Matching Candidates
             # Retrieved from candidates input file
 
-            return [[source, cand, 0] for source in sources for cand in self.candidates.map_dict.get(source)]
-        
+            return [
+                [source, cand, 0]
+                for source in sources
+                for cand in self.candidates.map_dict.get(source)
+            ]
+
         else:
-        
+
             # Global Matching Candidates
             # Retrieved from matcha
 
-            return [[source, cand, 0] for source in sources for cand in self.matcha_scores.get(source).keys()]
+            return [
+                [source, cand, 0]
+                for source in sources
+                for cand in self.matcha_scores.get(source).keys()
+            ]

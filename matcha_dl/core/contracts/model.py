@@ -1,10 +1,10 @@
-
 import torch
 
 nn = torch.nn
 Tensor = torch.Tensor
 
-MODEL = 'model'
+MODEL = "model"
+
 
 class IModel(nn.Module):
     def __init__(self):

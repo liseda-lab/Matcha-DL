@@ -1,8 +1,8 @@
-
-from typing import List
 import itertools
+from typing import List
 
 from matcha_dl.core.contracts.model import IModel, Tensor, nn
+
 
 def pairwise(iterable: List[int]) -> zip:
     """
@@ -17,6 +17,7 @@ def pairwise(iterable: List[int]) -> zip:
     a, b = itertools.tee(iterable)
     next(b, None)
     return zip(a, b)
+
 
 class MlpClassifier(IModel):
 
@@ -52,7 +53,4 @@ class MlpClassifier(IModel):
             Tensor: The output of the MLP.
         """
 
-        return self.sigmoid(
-            self.classify(
-                self._hidden_layers(x)
-            ))
+        return self.sigmoid(self.classify(self._hidden_layers(x)))

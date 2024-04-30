@@ -1,2 +1,1 @@
-
-from matcha import Matcha
+from .matcha import Matcha

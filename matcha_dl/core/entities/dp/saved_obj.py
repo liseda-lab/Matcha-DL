@@ -3,36 +3,33 @@
 from __future__ import annotations
 
 import json
-import dill as pickle
 import os
 import shutil
-from typing import Optional
 from pathlib import Path
-from lxml import etree, builder
+from typing import Optional
+
+import dill as pickle
+from lxml import builder, etree
 
 
 class SavedObj:
-
     """Super class for objects that can be created from new or from saved"""
-    
+
     def __init__(self, saved_name):
         self.saved_name = saved_name
 
     @classmethod
     def from_new(cls, *args, **kwargs):
-        """constructor for new instance
-        """
+        """constructor for new instance"""
         raise NotImplementedError
 
     @classmethod
     def from_saved(cls, saved_path, *args, **kwargs):
-        """constructor for loading saved instance
-        """
+        """constructor for loading saved instance"""
         return cls.load_pkl(saved_path)
 
     def save_instance(self, saved_path, *args, **kwargs):
-        """save the current instance locally
-        """
+        """save the current instance locally"""
         Path(saved_path).mkdir(parents=True, exist_ok=True)
         self.save_pkl(self, saved_path)
 
@@ -59,8 +56,7 @@ class SavedObj:
 
     @staticmethod
     def load_pkl(saved_path: str):
-        """load the pickled part of the SavedObj
-        """
+        """load the pickled part of the SavedObj"""
         for file in os.listdir(saved_path):
             if file.endswith(".pkl"):
                 with open(f"{saved_path}/{file}", "rb") as input:
@@ -76,8 +72,7 @@ class SavedObj:
             print(f"same file exists at {destination}")
 
     def report(self, root_name: Optional[str] = None, **kwargs) -> str:
-        """generate xml report for the saved object
-        """
+        """generate xml report for the saved object"""
         xml = builder.ElementMaker()
         root_name = type(self).__name__ if not root_name else root_name
         elems = []

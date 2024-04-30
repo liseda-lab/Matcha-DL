@@ -1,9 +1,7 @@
-
-
-
 from abc import abstractmethod
 
 STOPPER = "stopper"
+
 
 class IStopper:
     @abstractmethod

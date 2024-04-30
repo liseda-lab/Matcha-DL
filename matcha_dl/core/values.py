@@ -1,4 +1,3 @@
-
 # MAPPINGS
 
 DEFAULT_REL = "<?rel>"

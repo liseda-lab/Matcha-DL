@@ -8,6 +8,8 @@ packages = [
     { include = "matcha_dl" },
 ]
 
+include = ["matcha_dl/**/*"]
+
 [tool.poetry.dependencies]
 python = "^3.12"
 
@@ -20,6 +22,7 @@ flake8 = "^7.0.0"
 isort = "^5.13.2"
 mypy = "^1.9.0"
 pytest = "^8.1.1"
+black = "^24.4.2"
 
 
 [tool.poetry.group.core.dependencies]

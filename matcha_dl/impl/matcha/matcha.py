@@ -1,5 +1,7 @@
 from pathlib import Path
+
 from matcha_dl.core.contracts.matcha import IMatcha
+
 
 class Matcha(IMatcha):
 
@@ -11,8 +13,8 @@ class Matcha(IMatcha):
         Returns:
             Path: The path to the matcha directory.
         """
-        return (Path(__file__).parent / 'matcha').resolve()
-    
+        return (Path(__file__).parent / "matcha").resolve()
+
     @property
     def jar_path(self) -> Path:
         """
@@ -21,4 +23,4 @@ class Matcha(IMatcha):
         Returns:
             Path: The path to the matcha.jar file.
         """
-        return (self.matcha_path / 'matcha.jar').resolve()
+        return (self.matcha_path / "matcha.jar").resolve()

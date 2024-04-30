@@ -1,38 +1,32 @@
 from abc import abstractmethod
 
 import torch as th
+from deeponto.align.mapping import EntityMapping as DeepOntoEntityMapping
 from torch.nn import Module as TorchModule
 from torch.optim import Optimizer as TorchOptimizer
 
 from matcha_dl.core.contracts.loss import ILoss
 from matcha_dl.core.contracts.stopper import IStopper
-
-from matcha_dl.impl.dp.utils import fill_anchored_scores
-
-from deeponto.align.mapping import EntityMapping as DeepOntoEntityMapping
-
 from matcha_dl.core.entities.dataset import MLPDataset
+from matcha_dl.impl.dp.utils import fill_anchored_scores
 
 EntityMapping = DeepOntoEntityMapping
 
-from pathlib import Path
-
-from typing import Dict, Optional, Any, List
-
 import random
-import numpy as np
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pandas as pd
 
 Module = TorchModule
 Optimizer = TorchOptimizer
 
-TRAINER = 'trainer'
+TRAINER = "trainer"
 
 
-def set_seed(seed_val: int = 888):
-    """Set random seed for reproducible results
-    """
+def set_seed(seed_val: Optional[int] = 888):
+    """Set random seed for reproducible results"""
     random.seed(seed_val)
     np.random.seed(seed_val)
     th.manual_seed(seed_val)
@@ -40,24 +34,26 @@ def set_seed(seed_val: int = 888):
 
     return seed_val
 
+
 class ITrainer:
 
-    def __init__(self,
-                 model: Module,
-                 loss: ILoss,
-                 optimizer: Optimizer,
-                 loss_params: Optional[Dict[str, Any]] = {},
-                 optimizer_params: Optional[Dict[str, Any]] = {},
-                 model_params: Optional[Dict[str, Any]] = {},
-                 earlystoping: Optional[IStopper] = None,
-                 device: Optional[int] = 0,
-                 output_dir: Optional[Path] = None,
-                 seed: Optional[int] = 42,
-                 **kwargs
-                 ):
-        
+    def __init__(
+        self,
+        model: Module,
+        loss: ILoss,
+        optimizer: Optimizer,
+        loss_params: Optional[Dict[str, Any]] = {},
+        optimizer_params: Optional[Dict[str, Any]] = {},
+        model_params: Optional[Dict[str, Any]] = {},
+        earlystoping: Optional[IStopper] = None,
+        device: Optional[int] = 0,
+        output_dir: Optional[Path] = None,
+        seed: Optional[int] = 42,
+        **kwargs,
+    ):
+
         # Load Args
-        
+
         self._dataset = None
         self._device = device
         self._model = model(**model_params).to(self.device)
@@ -79,7 +75,7 @@ class ITrainer:
 
         self.checkpoints_dir.mkdir(parents=True, exist_ok=True)
         self.logs_dir.mkdir(parents=True, exist_ok=True)
-        self.weights_dir.mkdir(parents=True, exist_ok=True)
+        self.alignment_dir.mkdir(parents=True, exist_ok=True)
 
     @property
     def epoch(self):
@@ -116,29 +112,31 @@ class ITrainer:
     @property
     def earlystoping(self):
         return self._earlystoping
-    
+
     @property
     def output_dir(self):
         return self._output_dir
-    
+
     @property
     def checkpoints_dir(self):
-        return (self.output_dir / 'training_checkpoints').resolve()
+        return (self._output_dir / "training_checkpoints").resolve()
 
     @property
     def logs_dir(self):
-        return (self.output_dir / 'training_logs').resolve()
+        return (self._output_dir / "training_logs").resolve()
 
     @property
     def alignment_dir(self):
-        return (self.output_dir / 'alignment').resolve()
-    
+        return (self._output_dir / "alignment").resolve()
+
     @property
     def checkpoints(self):
-        return [x.name for x in self.checkpoints_dir.glob('**/*') if x.is_file()]
-    
+        return [x.name for x in self.checkpoints_dir.glob("**/*") if x.is_file()]
+
     @abstractmethod
-    def train(self, dataset: MLPDataset, epochs: Optional[int] = 100, batch_size: Optional[int] = None):
+    def train(
+        self, dataset: MLPDataset, epochs: Optional[int] = 100, batch_size: Optional[int] = None
+    ):
         pass
 
     @abstractmethod
@@ -160,54 +158,57 @@ class ITrainer:
     def _save_global_alignment(self, preds: List[EntityMapping]):
 
         global_res = EntityMapping.sort_entity_mappings_by_score(preds, k=1)
-            
+
         global_res_save = [EntityMapping(src, trg, "=", score) for src, trg, score in global_res]
 
-        global_dir = str(self.results_dir) + f"/{'src2tgt.maps'}_global.tsv"
+        global_dir = str(self.alignment_dir) + f"/{'src2tgt.maps'}_global.tsv"
 
-        pd.DataFrame(global_res_save, columns=["SrcEntity", "TgtEntity", "Score"]).to_csv(global_dir, sep="\t", index=False)
+        pd.DataFrame(global_res_save, columns=["SrcEntity", "TgtEntity", "Score"]).to_csv(
+            global_dir, sep="\t", index=False
+        )
 
-    
     def _save_local_alignment(self, preds: List[EntityMapping]):
 
         ranking_results = fill_anchored_scores(self.dataset.candidates, preds)
 
-        local_dir = str(self.results_dir) + f"/{'src2tgt.maps'}_local.tsv"
+        local_dir = str(self.alignment_dir) + f"/{'src2tgt.maps'}_local.tsv"
 
-        pd.DataFrame(ranking_results, columns=["SrcEntity", "TgtEntity", "TgtCandidates"]).to_csv(local_dir, sep="\t", index=False)
+        pd.DataFrame(ranking_results, columns=["SrcEntity", "TgtEntity", "TgtCandidates"]).to_csv(
+            local_dir, sep="\t", index=False
+        )
 
         return local_dir
-    
-    
-    def load_checkpoint(self, checkpoint: Optional[str] ='last'):
 
-        if checkpoint == 'last':
-            checkpoint = '{}.pt'.format(self._get_last_checkpoint())
+    def load_checkpoint(self, checkpoint: Optional[str] = "last"):
 
-        checkpoint = th.load((self.checkpoint_dir / checkpoint).resolve())
+        if checkpoint == "last":
+            checkpoint = "{}.pt".format(self._get_last_checkpoint())
 
-        self._model.load_state_dict(checkpoint['model_state_dict'])
-        self._optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        self._epoch = checkpoint['epoch']
-        self._loss = checkpoint['loss']
+        checkpoint = th.load((self.checkpoints_dir / checkpoint).resolve())
+
+        self._model.load_state_dict(checkpoint["model_state_dict"])
+        self._optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        self._epoch = checkpoint["epoch"]
+        self._loss = checkpoint["loss"]
 
     def save_checkpoint(self):
 
         checkpoint = str(self._get_last_checkpoint() + 1)
 
-        th.save({
-            'epoch': self.epoch,
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
-            'loss': self.loss,
-        }, (self.checkpoint_dir / '{}.pt'.format(checkpoint)).resolve())
+        th.save(
+            {
+                "epoch": self.epoch,
+                "model_state_dict": self.model.state_dict(),
+                "optimizer_state_dict": self.optimizer.state_dict(),
+                "loss": self.loss,
+            },
+            (self.checkpoints_dir / "{}.pt".format(checkpoint)).resolve(),
+        )
 
     def _get_last_checkpoint(self):
         try:
-            res = int(sorted(self.checkpoints)[-1].split('.')[0])
+            res = int(sorted(self.checkpoints)[-1].split(".")[0])
         except IndexError:
             res = 0
 
         return res
-
-    

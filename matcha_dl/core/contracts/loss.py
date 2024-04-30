@@ -1,17 +1,18 @@
+from abc import abstractmethod
 
 import torch
-
 import torch.nn as nn
-from abc import abstractmethod
 
 LOSS = "loss"
 
 Tensor = torch.Tensor
 
+
 class ILoss(nn.Module):
     """
     Abstract base class for torch loss functions.
     """
+
     def __init__(self):
         super(ILoss, self).__init__()
 

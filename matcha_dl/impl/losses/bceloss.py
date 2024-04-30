@@ -1,12 +1,13 @@
-
-
 import torch.nn.functional as F
+
 from matcha_dl.core.contracts.loss import ILoss, Tensor
+
 
 class BCELossWeighted(ILoss):
     """
     Binary Cross Entropy Loss Weighted.
     """
+
     def __init__(self, weight: Tensor, device: Tensor) -> None:
         """
         Constructor for BCELossWeighted.
@@ -19,7 +20,7 @@ class BCELossWeighted(ILoss):
 
         self.dev = device
         self.weight = weight.to(self.dev)
-        self.reduction = 'none'
+        self.reduction = "none"
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         """
@@ -33,7 +34,7 @@ class BCELossWeighted(ILoss):
             Tensor: The loss value as a tensor.
         """
         weight_ = self.weight[target.data.view(-1).to(self.dev).long()].view_as(target)
-        
+
         loss = F.binary_cross_entropy(input, target, weight=None, reduction=self.reduction)
         loss_class_weighted = loss * weight_
         return loss_class_weighted.mean()

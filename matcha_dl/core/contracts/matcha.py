@@ -1,12 +1,19 @@
-from pathlib import Path
 import os
 import subprocess
 from abc import abstractmethod
+from pathlib import Path
 
-MATCHA = 'matcha'
+MATCHA = "matcha"
+
 
 class IMatcha:
-    def __init__(self, threshold: float, cardinality: int, output_file: str = 'matcha_scores.csv', max_heap='8G') -> None:
+    def __init__(
+        self,
+        threshold: float,
+        cardinality: int,
+        output_file: str = "matcha_scores.csv",
+        max_heap="8G",
+    ) -> None:
         """
         Initialize Matcher.
 
@@ -32,7 +39,7 @@ class IMatcha:
             Path: The path to the matcha directory.
         """
         pass
-    
+
     @abstractmethod
     @property
     def jar_path(self) -> Path:
@@ -70,7 +77,20 @@ class IMatcha:
             current_cwd = os.getcwd()
             os.chdir(self.matcha_path)
 
-            subprocess.call(['java', '-jar', f'-Xmx{self.max_heap}', str(self.jar_path), str(ont1), str(ont2), str(self.output_file), str(self.threshold), str(self.cardinality), "true"])
+            subprocess.call(
+                [
+                    "java",
+                    "-jar",
+                    f"-Xmx{self.max_heap}",
+                    str(self.jar_path),
+                    str(ont1),
+                    str(ont2),
+                    str(self.output_file),
+                    str(self.threshold),
+                    str(self.cardinality),
+                    "true",
+                ]
+            )
 
             os.chdir(current_cwd)
 

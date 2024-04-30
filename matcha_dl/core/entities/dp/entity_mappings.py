@@ -1,15 +1,14 @@
 # Adapted or copied from https://github.com/KRR-Oxford/DeepOnto
 
-from typing import Optional, List, Tuple
-from matcha_dl.core.values import DEFAULT_REL, DEFAULT_DUP_STRATEGY, DUP_STRATEGIES
-from matcha_dl.impl.dp.utils import sort_dict_by_values
-from deeponto.utils import read_table
-
-from dp import SavedObj
-
 from collections import defaultdict
+from typing import List, Optional, Tuple
 
 import pandas as pd
+from deeponto.utils import read_table
+from . import SavedObj
+
+from matcha_dl.core.values import DEFAULT_DUP_STRATEGY, DEFAULT_REL, DUP_STRATEGIES
+from matcha_dl.impl.dp.utils import sort_dict_by_values
 
 
 class EntityMapping:
@@ -36,13 +35,11 @@ class EntityMappingList(list):
             raise TypeError("Only EntityMapping can be added to the list.")
 
     def topk(self, k: int):
-        """Return top K scored mappings from the list
-        """
+        """Return top K scored mappings from the list"""
         return EntityMappingList(sorted(self, key=lambda x: x.score, reverse=True))[:k]
 
     def sorted(self):
-        """Return the sorted entity mapping list
-        """
+        """Return the sorted entity mapping list"""
         return self.topk(k=len(self))
 
     def to_tuples(self):
@@ -70,15 +67,14 @@ class EntityMappingList(list):
         rel: str = DEFAULT_REL,
         n_best: Optional[int] = None,
     ):
-        """Read mappings from csv/tsv files and preserve mappings with scores >= threshold
-        """
+        """Read mappings from csv/tsv files and preserve mappings with scores >= threshold"""
         df = read_table(table_mappings_path)
         mappings = cls()
         for _, dp in df.iterrows():
             if dp["Score"] >= threshold:
                 mappings.append(EntityMapping(dp["SrcEntity"], dp["TgtEntity"], rel, dp["Score"]))
         return mappings.topk(n_best)
-    
+
 
 class OntoMappings(SavedObj):
     def __init__(
@@ -120,21 +116,18 @@ class OntoMappings(SavedObj):
         return super().report(**self.info)
 
     def __len__(self):
-        """Total number of ranked mappings
-        """
+        """Total number of ranked mappings"""
         return sum([len(map_dict) for map_dict in self.map_dict.values()])
 
     def save_instance(self, saved_path):
-        """save the current instance locally
-        """
+        """save the current instance locally"""
         super().save_instance(saved_path)
         # also save in readable formats of the ranked alignment set
         self.save_json(self.map_dict, saved_path + f"/{self.saved_name}.json")
         self.to_df().to_csv(saved_path + f"/{self.saved_name}.tsv", sep="\t", index=False)
 
     def topks_for_ent(self, src_ent_iri: str, K: Optional[int] = None, threshold: float = 0.0):
-        """Return ranked mappings for a particular entry (head) entity
-        """
+        """Return ranked mappings for a particular entry (head) entity"""
         ls = EntityMappingList()
         for tgt_ent_iri, score in list(self.map_dict[src_ent_iri].items())[:K]:
             if score >= threshold:
@@ -167,13 +160,11 @@ class OntoMappings(SavedObj):
         return topks_for_all
 
     def to_tuples(self, include_scores: bool = False) -> List[Tuple[str, str]]:
-        """Unravel the mappings from dict to tuples
-        """
+        """Unravel the mappings from dict to tuples"""
         return self.topks(K=None, as_tuples=True, include_scores=include_scores)
 
     def to_df(self):
-        """Unravel the mappings from dict to dataframe
-        """
+        """Unravel the mappings from dict to dataframe"""
         triples = self.to_tuples(include_scores=True)
         map_df = pd.DataFrame(data=triples, columns=["SrcEntity", "TgtEntity", "Score"])
         return map_df
@@ -199,8 +190,7 @@ class OntoMappings(SavedObj):
         self.map_dict[em.head] = sort_dict_by_values(self.map_dict[em.head], top_k=self.n_best)
 
     def add_many(self, *ems: EntityMapping):
-        """Add a list of new mappings while keeping the ranking
-        """
+        """Add a list of new mappings while keeping the ranking"""
         for em in ems:
             self.add(em)
 
@@ -220,8 +210,7 @@ class OntoMappings(SavedObj):
         rel: str = DEFAULT_REL,
         dup_strategy: str = DEFAULT_DUP_STRATEGY,
     ):
-        """Read mappings from csv/tsv files and preserve mappings with scores >= threshold
-        """
+        """Read mappings from csv/tsv files and preserve mappings with scores >= threshold"""
         df = read_table(table_mappings_path)
         onto_mappings = cls(flag=flag, n_best=n_best, rel=rel, dup_strategy=dup_strategy)
         for _, dp in df.iterrows():

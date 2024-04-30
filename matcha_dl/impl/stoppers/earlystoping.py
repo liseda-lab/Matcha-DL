@@ -1,5 +1,5 @@
-
 from matcha_dl.core.contracts.stopper import IStopper
+
 
 class EarlyStopping(IStopper):
     def __init__(self, tolerance: int = 5, min_delta: int = 0):
@@ -23,6 +23,6 @@ class EarlyStopping(IStopper):
             validation_loss (float): The validation loss.
         """
         if (validation_loss - train_loss) > self.min_delta:
-            self.counter +=1
+            self.counter += 1
             if self.counter >= self.tolerance:
                 self.early_stop = True

@@ -1,5 +1,3 @@
-
-
 import argparse
 from pathlib import Path
 
@@ -8,14 +6,13 @@ from matcha_dl.core.actions.alignment import AlignmentAction
 
 def run_alignment(args):
     AlignmentAction.run(
-        source_file_path=Path(args.source_ontology_file),
-        target_file_path=Path(args.target_ontology_file),
-        output_dir_path=Path(args.output_dir),
-        configs_file_path=Path(args.config_file) if args.config_file else None,
-        reference_file_path=Path(args.reference_file) if args.reference_file else None,
-        candidates_file_path=Path(args.candidates_file) if args.candidates_file else None,
+        source_file_path=args.source_ontology_file,
+        target_file_path=args.target_ontology_file,
+        output_dir_path=args.output_dir,
+        configs_file_path=args.config_file,
+        reference_file_path=args.reference_file,
+        candidates_file_path=args.candidates_file,
     )
-
 
 
 def parse_arguments():
@@ -86,7 +83,7 @@ def main():
             raise Exception(f"Configuration file {args.config_file} does not exist")
     else:
         parent_dir = Path(__file__).parent
-        config_file = parent_dir / 'default_config.yaml'
+        args.config_file = str(parent_dir / "default_config.yaml")
 
     run_alignment(args)
 

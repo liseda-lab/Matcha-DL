@@ -1,15 +1,13 @@
-
 import warnings
-from torch.utils.tensorboard import SummaryWriter
-import tqdm
-
-from torch.utils.data import DataLoader, TensorDataset
-import torch as th
-
-from matcha_dl.core.contracts.trainer import ITrainer, MLPDataset, EntityMapping
 from typing import Optional
 
 import numpy as np
+import torch as th
+import tqdm
+from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.tensorboard import SummaryWriter
+
+from matcha_dl.core.contracts.trainer import EntityMapping, ITrainer, MLPDataset
 
 
 class MLPTrainer(ITrainer):
@@ -23,9 +21,9 @@ class MLPTrainer(ITrainer):
         while self.epoch <= epochs:
             self._model.train()
             _iter = 1
-            
-            with tqdm(self._load_data(kind='train', batch_size=batch_size), unit="batch") as tepoch:
-                
+
+            with tqdm(self._load_data(kind="train", batch_size=batch_size), unit="batch") as tepoch:
+
                 for data, target in tepoch:
                     tepoch.set_description(f"Epoch {self.epoch}")
 
@@ -57,7 +55,7 @@ class MLPTrainer(ITrainer):
     def predict(self, **kwargs):
 
         kind = "inference"
-        
+
         df = self.dataset.dataframe.copy()
         df = df[df[kind] == True]
 
@@ -69,18 +67,24 @@ class MLPTrainer(ITrainer):
             with th.no_grad():
                 logits = self._model(data)
 
-            df['Scores'] = logits.cpu()
+            df["Scores"] = logits.cpu()
 
-            return [EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["Scores"]) for _, dp in df.iterrows()]
-        
+            return [
+                EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["Scores"])
+                for _, dp in df.iterrows()
+            ]
+
         # if unsupervised use max score from matcha
         else:
 
-            df['matcha'] = np.array(df['Features'].values.tolist()).max(axis=1)
+            df["matcha"] = np.array(df["Features"].values.tolist()).max(axis=1)
 
-            return [EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["matcha"]) for _, dp in df.iterrows()]
+            return [
+                EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["matcha"])
+                for _, dp in df.iterrows()
+            ]
 
-    def _load_data(self, kind='train', batch_size=None):
+    def _load_data(self, kind="train", batch_size=None):
 
         x = self.dataset.x(kind)
         y = self.dataset.y(kind)
@@ -92,7 +96,7 @@ class MLPTrainer(ITrainer):
         y = y.unsqueeze(1)
         y = y.to(self.device)
 
-        if kind == 'train':
+        if kind == "train":
             ds = TensorDataset(x, y)
             if not batch_size:
                 batch_size = 1

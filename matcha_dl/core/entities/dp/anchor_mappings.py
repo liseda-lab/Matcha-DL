@@ -1,15 +1,14 @@
-
-from dp import SavedObj, EntityMapping, EntityMappingList, OntoMappings
-from deeponto.utils import read_table
-
-from typing import Optional
-from matcha_dl.core.values import DEFAULT_REL, DEFAULT_DUP_STRATEGY
-from matcha_dl.impl.dp.utils import sort_dict_by_values
-
+import ast
 from collections import defaultdict
+from typing import Optional
 
 import pandas as pd
-import ast
+from deeponto.utils import read_table
+from dp import EntityMapping, EntityMappingList, OntoMappings, SavedObj
+
+from matcha_dl.core.values import DEFAULT_DUP_STRATEGY, DEFAULT_REL
+from matcha_dl.impl.dp.utils import sort_dict_by_values
+
 
 class AnchorMapping(EntityMapping):
     """A special EntityMapping that serves as an "anchor" for its candidates"""
@@ -46,8 +45,6 @@ class AnchorMapping(EntityMapping):
                 "Candidate mapping does not have the same head entity as the anchor mapping."
             )
         self.candidates.append(cand_map)
-
-
 
 
 class AnchoredOntoMappings(SavedObj):
@@ -96,13 +93,11 @@ class AnchoredOntoMappings(SavedObj):
         return super().report(**self.info)
 
     def __len__(self):
-        """Total number of ranked mappings
-        """
+        """Total number of ranked mappings"""
         return sum([len(map_dict) for map_dict in self.anchor2cands.values()])
 
     def save_instance(self, saved_path):
-        """save the current instance locally
-        """
+        """save the current instance locally"""
         super().save_instance(saved_path)
         # also save a readable format of the ranked alignment set
         anchor2cand_json = {str(k): v for k, v in self.anchor2cands.items()}
@@ -142,14 +137,12 @@ class AnchoredOntoMappings(SavedObj):
         )
 
     def add_many(self, *anchor_maps: AnchorMapping):
-        """Add a list of anchor-cand mapping pairs while keeping the ranking
-        """
+        """Add a list of anchor-cand mapping pairs while keeping the ranking"""
         for am in anchor_maps:
             self.add(am)
 
     def fill_scored_maps(self, scored_onto_maps: OntoMappings):
-        """Fill mapping score from scored onto mappings
-        """
+        """Fill mapping score from scored onto mappings"""
         assert self.flag == scored_onto_maps.flag
         num_valid = 0
         for src_ent_iri, v in scored_onto_maps.map_dict.items():
@@ -166,8 +159,7 @@ class AnchoredOntoMappings(SavedObj):
         )
 
     def unscored_cand_maps(self) -> OntoMappings:
-        """Return all candidate mappings with no scores and anchors (so that duplicates will be merged)
-        """
+        """Return all candidate mappings with no scores and anchors (so that duplicates will be merged)"""
         unscored_cands = OntoMappings(self.flag, self.n_best, self.rel, self.dup_strategy)
         for cand_tup in self.cand2anchors.keys():
             cand_map = EntityMapping(cand_tup[0], cand_tup[1], self.rel, 0.0)
@@ -175,8 +167,7 @@ class AnchoredOntoMappings(SavedObj):
         return unscored_cands
 
     def to_df(self, with_scores=False):
-        """Unravel the anchor mappings from dict to dataframe
-        """
+        """Unravel the anchor mappings from dict to dataframe"""
         anchor_map_df = pd.DataFrame(
             columns=["SrcEntity", "TgtEntity", "TgtCandidates", "CandScores"]
         )
@@ -194,8 +185,7 @@ class AnchoredOntoMappings(SavedObj):
             raise ValueError(f"Expect anchor mapping relation {self.rel}) but got {am.rel}.")
 
     def existed_cands_for_anchor(self, anchor_map: AnchorMapping):
-        """Check if candidate mappings for an anchor already exist
-        """
+        """Check if candidate mappings for an anchor already exist"""
         existed_cands = EntityMappingList()
         for cand in anchor_map.candidates:
             if cand.tail in self.anchor2cands[anchor_map.to_tuple()].keys():
@@ -211,8 +201,7 @@ class AnchoredOntoMappings(SavedObj):
         rel: str = DEFAULT_REL,
         dup_strategy: str = DEFAULT_DUP_STRATEGY,
     ):
-        """Read mappings from csv/tsv files and preserve mappings with scores >= threshold
-        """
+        """Read mappings from csv/tsv files and preserve mappings with scores >= threshold"""
         df = read_table(table_mappings_path)
         anchored_onto_mappings = cls(flag=flag, n_best=n_best, rel=rel, dup_strategy=dup_strategy)
         for _, dp in df.iterrows():

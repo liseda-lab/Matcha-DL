@@ -4,6 +4,7 @@ import numpy as np
 
 NEGATIVE_SAMPLER = "sampler"
 
+
 class INegativeSampler:
 
     def __init__(self, n_samples, seed=42):
@@ -18,7 +19,7 @@ class INegativeSampler:
     @property
     def random(self):
         return np.random.RandomState(self._seed)
-    
+
     @abstractmethod
     def sample(self, sources, targets):
         pass

@@ -1,33 +1,30 @@
 from abc import abstractmethod
-
-from typing import Optional, Dict
-
-from matcha_dl.core.contracts.negative_sampler import INegativeSampler
-from matcha_dl.core.entities.dp.anchor_mappings import AnchoredOntoMappings
-from matcha_dl.core.entities.dataset import MlpDataset
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
 
-PROCESSOR = 'processor'
+from matcha_dl.core.contracts.negative_sampler import INegativeSampler
+from matcha_dl.core.entities.dataset import MlpDataset
+from matcha_dl.core.entities.dp.anchor_mappings import AnchoredOntoMappings
+
+PROCESSOR = "processor"
 
 DataFrame = pd.DataFrame
 
 
 class IProcessor:
-
     """Abstract base class for a processor that parses all data inputs and returns a dataset as a pandas dataframe.
 
-        Attributes:
-            matcha_scores (Dict): The matcha scores.
-            refs (DataFrame): The reference data.
-            sampler (INegativeSampler): The sampler.
-            candidates (AnchoredOntoMappings): The ranking candidates.
-            random (np.random.RandomState): The random state.
+    Attributes:
+        matcha_scores (Dict): The matcha scores.
+        refs (DataFrame): The reference data.
+        sampler (INegativeSampler): The sampler.
+        candidates (AnchoredOntoMappings): The ranking candidates.
+        random (np.random.RandomState): The random state.
     """
-        
+
     def __init__(self, sampler: Optional[INegativeSampler] = None, seed: Optional[int] = 42):
-            
         """
 
         Args:
@@ -49,7 +46,7 @@ class IProcessor:
             Dict: The matcha scores.
         """
         return self._matcha_scores
-    
+
     @property
     def refs(self) -> DataFrame:
         """Gets the reference data.
@@ -58,7 +55,7 @@ class IProcessor:
             DataFrame: The reference data.
         """
         return self._refs
-    
+
     @property
     def sampler(self) -> INegativeSampler:
         """Gets the sampler.
@@ -67,7 +64,7 @@ class IProcessor:
             INegativeSampler: The sampler.
         """
         return self._sampler
-    
+
     @property
     def candidates(self) -> AnchoredOntoMappings:
         """Gets the ranking candidates.
@@ -76,7 +73,7 @@ class IProcessor:
             AnchoredOntoMappings: The ranking candidates.
         """
         return self._cands
-    
+
     @property
     def random(self) -> np.random.RandomState:
         """Gets the random state.
@@ -85,8 +82,10 @@ class IProcessor:
             np.random.RandomState: The random state.
         """
         return np.random.RandomState(self._seed)
-    
-    def process(self, scores_file: str, ref_file: Optional[str] = None, cands_file: Optional[str] = None) -> MlpDataset:
+
+    def process(
+        self, scores_file: str, ref_file: Optional[str] = None, cands_file: Optional[str] = None
+    ) -> MlpDataset:
         """Processes the data.
 
         Args:
@@ -97,22 +96,24 @@ class IProcessor:
         Returns:
             MlpDataset: The processed data.
         """
-        
+
         self._matcha_scores = self._matcha_scores_to_dict(scores_file)
 
         if ref_file:
-            self._refs = pd.read_csv(str(ref_file), sep='\t')
+            self._refs = pd.read_csv(str(ref_file), sep="\t")
 
             # if refs exist sampler must not be None
 
             if not self.sampler:
                 raise ValueError("If ref file is provided, sampler must be provided")
-            
+
         if cands_file:
-            self._cands = AnchoredOntoMappings.read_table_mappings(str(cands_file)).unscored_cand_maps()
+            self._cands = AnchoredOntoMappings.read_table_mappings(
+                str(cands_file)
+            ).unscored_cand_maps()
 
         self._process()
-    
+
     @abstractmethod
     def _process(self):
         pass
