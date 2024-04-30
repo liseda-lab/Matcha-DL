@@ -10,7 +10,7 @@ The package is stil undergoing testing, we will have a distribution available on
 
 To install Matcha DL, you can use pip:
 ```bash
-pip install matcha_dl
+pip install matcha-dl
 ```
 
 ## USAGE
@@ -18,7 +18,7 @@ pip install matcha_dl
 Matcha DL provides a command line interface for computing the alignment between two ontologies. Here's how you can use it:
 
 ```bash
-matcha_dl --source_ontology_file <source_file_path> --target_ontology_file <target_file_path> --output_dir <output_dir_path> [--reference_file <reference_file_path>] [--candidates_file <candidates_file_path>] [--config_file <config_file_path>]
+matcha-dl --source_ontology_file <source_file_path> --target_ontology_file <target_file_path> --output_dir <output_dir_path> [--reference_file <reference_file_path>] [--candidates_file <candidates_file_path>] [--config_file <config_file_path>]
 ```
 
 ### Arguments
