@@ -1,12 +1,18 @@
 [tool.poetry]
 name = "matcha-dl"
 version = "0.1.0"
-description = ""
+description = "Matcha-DL is a tool for supervised ontology alignment. It takes as input two ontologies and a set of mappings between them, and learns a model that can predict mappings between the two ontologies."
 authors = ["Pedro Cotovio <pgcotovio@gmail.com>"]
 readme = "README.md"
+packages = [
+    { include = "matcha_dl" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
+
+[tool.poetry.scripts]
+embeddings = "matcha_dl.cli:main"
 
 
 [tool.poetry.group.prebuild.dependencies]
@@ -20,6 +26,7 @@ pytest = "^8.1.1"
 dill = "^0.3.8"
 lxml = "^5.2.1"
 pandas = "^2.2.2"
+pyyaml = "^6.0.1"
 
 [build-system]
 requires = ["poetry-core"]

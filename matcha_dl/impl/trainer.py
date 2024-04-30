@@ -14,7 +14,7 @@ import numpy as np
 
 class MLPTrainer(ITrainer):
 
-    def train(self, dataset: MLPDataset, epochs=50, batch_size=None, save_interval=5):
+    def train(self, epochs=50, batch_size=None, save_interval=5):
 
         warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -54,10 +54,7 @@ class MLPTrainer(ITrainer):
         # TODO add AML repair
         pass
 
-    def predict(self, dataset: Optional[MLPDataset] = None, **kwargs):
-
-        if not dataset:
-            raise ValueError("Dataset is required for prediction")
+    def predict(self, **kwargs):
 
         kind = "inference"
         

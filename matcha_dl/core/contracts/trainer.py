@@ -46,6 +46,8 @@ class ITrainer:
                  model: Module,
                  loss: ILoss,
                  optimizer: Optimizer,
+                 loss_params: Optional[Dict[str, Any]] = {},
+                 optimizer_params: Optional[Dict[str, Any]] = {},
                  model_params: Optional[Dict[str, Any]] = {},
                  earlystoping: Optional[IStopper] = None,
                  device: Optional[int] = 0,
@@ -59,8 +61,8 @@ class ITrainer:
         self._dataset = None
         self._device = device
         self._model = model(**model_params).to(self.device)
-        self._optimizer = optimizer(self._model.parameters())
-        self._loss = loss.to(self.device)
+        self._optimizer = optimizer(self._model.parameters(), **optimizer_params)
+        self._loss = loss(**loss_params).to(self.device)
         self._earlystoping = earlystoping
 
         self._output_dir = output_dir
