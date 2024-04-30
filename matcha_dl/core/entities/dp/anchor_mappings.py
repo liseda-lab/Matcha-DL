@@ -4,7 +4,7 @@ from typing import Optional
 
 import pandas as pd
 from deeponto.utils import read_table
-from dp import EntityMapping, EntityMappingList, OntoMappings, SavedObj
+from .entity_mappings import EntityMapping, EntityMappingList, OntoMappings, SavedObj
 
 from matcha_dl.core.values import DEFAULT_DUP_STRATEGY, DEFAULT_REL
 from matcha_dl.impl.dp.utils import sort_dict_by_values

@@ -66,9 +66,9 @@ def main():
     args = parse_arguments()
 
     if not Path(args.source_ontology_file).exists():
-        raise Exception(f"Source ontology file {args.ontology_file} does not exist")
+        raise Exception(f"Source ontology file {args.source_ontology_file} does not exist")
     if not Path(args.target_ontology_file).exists():
-        raise Exception(f"Target ontology file {args.ontology_file} does not exist")
+        raise Exception(f"Target ontology file {args.target_ontology_file} does not exist")
     if args.reference_file and not Path(args.reference_file).exists():
         raise Exception(f"Reference file {args.reference_file} does not exist")
     if args.candidates_file and not Path(args.candidates_file).exists():

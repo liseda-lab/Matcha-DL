@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 
 import pandas as pd
 from deeponto.utils import read_table
-from . import SavedObj
+from .saved_obj import SavedObj
 
 from matcha_dl.core.values import DEFAULT_DUP_STRATEGY, DEFAULT_REL, DUP_STRATEGIES
 from matcha_dl.impl.dp.utils import sort_dict_by_values

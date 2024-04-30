@@ -7,7 +7,7 @@ import tqdm
 from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.tensorboard import SummaryWriter
 
-from matcha_dl.core.contracts.trainer import EntityMapping, ITrainer, MLPDataset
+from matcha_dl.core.contracts.trainer import EntityMapping, ITrainer
 
 
 class MLPTrainer(ITrainer):

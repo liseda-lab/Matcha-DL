@@ -7,7 +7,7 @@ from torch.optim import Optimizer as TorchOptimizer
 
 from matcha_dl.core.contracts.loss import ILoss
 from matcha_dl.core.contracts.stopper import IStopper
-from matcha_dl.core.entities.dataset import MLPDataset
+from matcha_dl.core.entities.dataset import MlpDataset
 from matcha_dl.impl.dp.utils import fill_anchored_scores
 
 EntityMapping = DeepOntoEntityMapping
@@ -39,6 +39,7 @@ class ITrainer:
 
     def __init__(
         self,
+        dataset: MlpDataset,
         model: Module,
         loss: ILoss,
         optimizer: Optimizer,
@@ -54,7 +55,7 @@ class ITrainer:
 
         # Load Args
 
-        self._dataset = None
+        self._dataset = dataset
         self._device = device
         self._model = model(**model_params).to(self.device)
         self._optimizer = optimizer(self._model.parameters(), **optimizer_params)
@@ -135,7 +136,7 @@ class ITrainer:
 
     @abstractmethod
     def train(
-        self, dataset: MLPDataset, epochs: Optional[int] = 100, batch_size: Optional[int] = None
+        self, epochs: Optional[int] = 100, batch_size: Optional[int] = None
     ):
         pass
 
@@ -144,7 +145,7 @@ class ITrainer:
         pass
 
     @abstractmethod
-    def predict(self, dataset: Optional[MLPDataset] = None, **kwargs):
+    def predict(self, **kwargs):
         pass
 
     def save_alignment(self, preds: List[EntityMapping]):

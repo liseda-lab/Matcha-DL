@@ -41,20 +41,20 @@ class AlignmentAction(Protocol):
 
         logging.basicConfig(
             filename=str(Path(output_dir_path) / "matcha_dl.log"),
-            level=configs.logging.level,
+            level=configs.get('logging_level'),
         )
 
         logging.info(f"Configuration loaded from {configs_file_path}")
 
         # Load JVM
 
-        init_jvm(configs.matcha_params.max_heap)
+        init_jvm(configs.get('matcha_params').get('max_heap'))
 
         # Matcha module
 
         logging.info(f"Matching {source_file_path} and {target_file_path}")
 
-        matcha = Matcha(**configs.matcha_params)
+        matcha = Matcha(output_file=str(Path(output_dir_path) / 'matcha_scores.csv') ,**configs.get('matcha_params'))
 
         matcha_output_file = str(matcha.match(source_file_path, target_file_path))
 
@@ -64,7 +64,7 @@ class AlignmentAction(Protocol):
 
         logging.info(f"Processing dataset")
         processor = MainProcessor(
-            sampler=RandomNegativeSampler(n_samples=configs.number_of_negatives), seed=configs.seed
+            sampler=RandomNegativeSampler(n_samples=configs.get('number_of_negatives')), seed=configs.get('seed')
         )
 
         dataset = processor.process(matcha_output_file, reference_file_path, candidates_file_path)
@@ -72,28 +72,28 @@ class AlignmentAction(Protocol):
         logging.info(f"Dataset parsed")
 
         # Trainer module
-        if hasattr(optim, configs.optimizer.name):
-            optimizer = getattr(optim, configs.optimizer.name)
+        if hasattr(optim, configs.get('optimizer').get('name')):
+            optimizer = getattr(optim, configs.get('optimizer').get('name'))
         else:
-            raise ValueError(f"Optimizer {configs.optimizer.name} not recognized")
+            raise ValueError(f"Optimizer {configs.get('optimizer').get('name')} not recognized")
 
         trainer = MLPTrainer(
             dataset=dataset,
             model=MlpClassifier,
             loss=BCELossWeighted,
             optimizer=optimizer,
-            loss_params=configs.loss_params,
-            optimizer_params=configs.optimizer.params,
-            model_params=configs.model_params,
+            loss_params=configs.get('loss_params'),
+            optimizer_params=configs.get('optimizer.params'),
+            model_params=configs.get('model_params'),
             earlystoping=None,
-            device=configs.device,
+            device=configs.get('device'),
             output_dir=Path(output_dir_path),
-            seed=configs.seed,
+            seed=configs.get('seed'),
         )
 
         if reference_file_path:
             logging.info(f"Training model with {reference_file_path}")
-            trainer.train(**configs.train_params)
+            trainer.train(**configs.get('train_params'))
 
         logging.info(f"Computing alignment")
 

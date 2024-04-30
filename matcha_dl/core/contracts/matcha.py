@@ -29,8 +29,8 @@ class IMatcha:
         self.output_file = Path(output_file)
         self.max_heap = max_heap
 
-    @abstractmethod
     @property
+    @abstractmethod
     def matcha_path(self) -> Path:
         """
         Get the path to the matcha directory.
@@ -39,9 +39,9 @@ class IMatcha:
             Path: The path to the matcha directory.
         """
         pass
-
-    @abstractmethod
+    
     @property
+    @abstractmethod
     def jar_path(self) -> Path:
         """
         Get the path to the matcha.jar file.
@@ -77,20 +77,25 @@ class IMatcha:
             current_cwd = os.getcwd()
             os.chdir(self.matcha_path)
 
-            subprocess.call(
-                [
-                    "java",
-                    "-jar",
-                    f"-Xmx{self.max_heap}",
-                    str(self.jar_path),
-                    str(ont1),
-                    str(ont2),
-                    str(self.output_file),
-                    str(self.threshold),
-                    str(self.cardinality),
-                    "true",
-                ]
-            )
+            try:
+                process = subprocess.run(
+                    [
+                        "java",
+                        "-jar",
+                        f"-Xmx{self.max_heap}",
+                        str(self.jar_path),
+                        str(ont1),
+                        str(ont2),
+                        str(self.output_file),
+                        str(self.threshold),
+                        str(self.cardinality),
+                        "true",
+                    ],
+                    check=True
+                )
+            
+            except subprocess.CalledProcessError as e:
+                raise RuntimeError(f"Matcha subprocess returned with error code {e.returncode}")
 
             os.chdir(current_cwd)
 
