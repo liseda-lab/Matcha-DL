@@ -57,8 +57,8 @@ This work was supported by FCT through the fellowships 2022.10557.BD (Pedro Coto
 
 **Institutions:**
 
-[1] LASIGE, Faculdade de Ciências, Universidade de Lisboa, Portugal
-[2] INESC-ID, Instituto Superior Técnico, Universidade de Lisboa, Portugal
+1. LASIGE, Faculdade de Ciências, Universidade de Lisboa, Portugal
+2. INESC-ID, Instituto Superior Técnico, Universidade de Lisboa, Portugal
 
 
 
