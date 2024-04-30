@@ -11,7 +11,9 @@ packages = [
 include = ["matcha_dl/**/*"]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10"
+torch = "^2.3.0"
+deeponto = "^0.9.1"
 
 [tool.poetry.scripts]
 embeddings = "matcha_dl.cli:main"
