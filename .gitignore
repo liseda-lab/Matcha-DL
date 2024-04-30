@@ -5,3 +5,7 @@
 # Matcha folder
 
 /matcha_dl/impl/matcha/matcha/*
+
+# Test Data
+
+/tests/test_data/*
