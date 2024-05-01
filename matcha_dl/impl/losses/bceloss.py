@@ -8,7 +8,7 @@ class BCELossWeighted(ILoss):
     Binary Cross Entropy Loss Weighted.
     """
 
-    def __init__(self, weight: Tensor, device: Tensor) -> None:
+    def __init__(self, weight: Tensor, device: Tensor, **kwargs) -> None:
         """
         Constructor for BCELossWeighted.
 

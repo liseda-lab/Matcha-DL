@@ -13,7 +13,7 @@ class ILoss(nn.Module):
     Abstract base class for torch loss functions.
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super(ILoss, self).__init__()
 
     @abstractmethod

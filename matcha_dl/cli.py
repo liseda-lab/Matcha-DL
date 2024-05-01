@@ -76,14 +76,10 @@ def main():
     if not Path(args.output_dir).exists():
         Path(args.output_dir).mkdir(parents=True)
 
-    # If no config file is passed, use the default config file
     if args.config_file:
         config_file = Path(args.config_file)
         if not config_file.exists():
             raise Exception(f"Configuration file {args.config_file} does not exist")
-    else:
-        parent_dir = Path(__file__).parent
-        args.config_file = str(parent_dir / "default_config.yaml")
 
     run_alignment(args)
 
