@@ -47,12 +47,12 @@ class MLPTrainer(ITrainer):
         writer.flush()
         writer.close()
 
-    def filter(self, **kwargs):
+    def repair(self, **kwargs):
 
         # TODO add AML repair
         pass
 
-    def predict(self, **kwargs):
+    def predict(self, threshold: Optional[float] = 0.7, **kwargs):
 
         kind = "inference"
 
@@ -71,7 +71,7 @@ class MLPTrainer(ITrainer):
 
             return [
                 EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["Scores"])
-                for _, dp in df.iterrows()
+                for _, dp in df.iterrows() if dp["Scores"] >= threshold
             ]
 
         # if unsupervised use max score from matcha
@@ -81,7 +81,7 @@ class MLPTrainer(ITrainer):
 
             return [
                 EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["matcha"])
-                for _, dp in df.iterrows()
+                for _, dp in df.iterrows() if dp["matcha"] >= threshold
             ]
 
     def _load_data(self, kind="train", batch_size=None):

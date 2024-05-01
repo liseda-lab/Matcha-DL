@@ -141,7 +141,7 @@ class ITrainer:
         pass
 
     @abstractmethod
-    def filter(self, **kwargs):
+    def repair(self, **kwargs):
         pass
 
     @abstractmethod
