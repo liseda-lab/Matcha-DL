@@ -1,7 +1,9 @@
 import os
+import sys
 import subprocess
 from abc import abstractmethod
 from pathlib import Path
+import logging
 
 MATCHA = "matcha"
 
@@ -12,6 +14,7 @@ class IMatcha:
         threshold: float,
         cardinality: int,
         output_file: str = "matcha_scores.csv",
+        log_file: str = "matcha.log",
         max_heap="8G",
     ) -> None:
         """
@@ -27,6 +30,7 @@ class IMatcha:
         self.threshold = threshold
         self.cardinality = cardinality
         self.output_file = Path(output_file)
+        self.log_file = Path(log_file)
         self.max_heap = max_heap
 
     @property
@@ -77,22 +81,26 @@ class IMatcha:
             current_cwd = os.getcwd()
             os.chdir(self.matcha_path)
 
+            jar_command = [
+                "java",
+                "-jar",
+                f"-Xmx{self.max_heap}",
+                str(self.jar_path),
+                str(ont1),
+                str(ont2),
+                str(self.output_file),
+                str(self.threshold),
+                str(self.cardinality),
+                "true",
+                sys.executable,
+            ]
+
+            # TODO take out print statement when done debugging
+            print("Running command:", ' '.join(jar_command))
+
             try:
-                process = subprocess.run(
-                    [
-                        "java",
-                        "-jar",
-                        f"-Xmx{self.max_heap}",
-                        str(self.jar_path),
-                        str(ont1),
-                        str(ont2),
-                        str(self.output_file),
-                        str(self.threshold),
-                        str(self.cardinality),
-                        "true",
-                    ],
-                    check=True
-                )
+                with open(str(self.log_file), 'w') as f:
+                    _ = subprocess.run(jar_command, stdout=f, stderr=f, check=True)
             
             except subprocess.CalledProcessError as e:
                 raise RuntimeError(f"Matcha subprocess returned with error code {e.returncode}")
