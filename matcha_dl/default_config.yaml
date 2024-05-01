@@ -1,8 +1,8 @@
 
-# Alignment Parameters
+# System Parmeters
 
-## Number of negative examples to be used in the training set per positive example.
-number_of_negatives: 99
+## Verbosity level of the logs.
+logging_level: INFO
 
 ## Seed for reproducibility.
 seed: 42
@@ -10,35 +10,42 @@ seed: 42
 ## Cuda device to be used. If None, CPU will be used.
 device: 0
 
-## Verbosity level of the logs.
-logging_level: INFO
+# Alignment Parameters
 
-matcha_params: {
+## Number of negative examples to be used in the training set per positive example.
+number_of_negatives: 99
+
+## Use the last checkpoint to continue training
+use_last_checkpoint: False
+
+## Threshold to be used to filter predictions.
+threshold: 0.7
+
+matcha_params:
   ## JAVA Heap Size
-  max_heap: 64G,
+  max_heap: 64G
   ## Number of matches on target for every entity in source
-  cardinality: 50,
+  cardinality: 50
   ## Filter to be aplied on the matches
   threshold: 0.1
-}
 
-training_params: {
-  epochs: 10,
-  batch_size: None,
+training_params:
+  epochs: 10
+  batch_size: None
   save_interval: 5
-}
 
-model_params: 
-  layers: [128, 256, 128]
+model:
+  name: MlpClassifier
+  params:
+    layers: [128, 256, 128]
 
-loss_params: {
+loss:
+  name: BCELossWeighted
+  params:
     weight: [0.01, 0.99]
-}
 
-optimizer: {
-  name: Adam,
-  params: {
+optimizer:
+  name: Adam
+  params:
     lr: 0.001
-  }
-}
 
