@@ -30,6 +30,12 @@ matcha-dl --source_ontology_file <source_file_path> --target_ontology_file <targ
 * --candidates_file or -c: Path to the candidates file (optional)
 * --config_file or -C: Path to the config file (optional)
 
+#### Details
+ 
+* The reference file should be a reference alignment, that follows the standards from the [OAEI's Bio-ML track](https://krr-oxford.github.io/DeepOnto/bio-ml/#oaei-bio-ml-2023).
+* The candidates file should be a list of all the candidates for each of the entities to rank, that follows the standards from the [OAEI's Bio-ML track](https://krr-oxford.github.io/DeepOnto/bio-ml/#oaei-bio-ml-2023).
+* The configuration file is a user-defined configuration file. An example can be found at [https://github.com/liseda-lab/Matcha-DL/blob/main/matcha_dl/default_config.yaml](https://github.com/liseda-lab/Matcha-DL/blob/main/matcha_dl/default_config.yaml).
+
 ### Tasks
 
 #### Supervised/Unsupervised settings
@@ -48,12 +54,7 @@ This work was supported by FCT through the fellowships 2022.10557.BD (Pedro Coto
 
 **Authors:**
 
-* Pedro Giesteira Cotovio, [1]
-* Lucas Ferraz, [1]
-* Daniel Faria, [2]
-* Laura Balbi, [1]
-* Marta Contreiras Silva, [1]
-* Catia Pesquita, [1]
+Pedro Giesteira Cotovio, [1], Lucas Ferraz, [1], Daniel Faria, [2], Laura Balbi, [1], Marta Contreiras Silva, [1], Catia Pesquita, [1]
 
 **Institutions:**
 
