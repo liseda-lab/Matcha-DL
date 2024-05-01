@@ -72,7 +72,12 @@ class MainProcessor(IProcessor):
 
         # combine training and inference sets
 
-        dataset = pd.concat([training_set, inference_set], ignore_index=True)
+        if self.refs:
+
+            dataset = pd.concat([training_set, inference_set], ignore_index=True)
+
+        else:
+            dataset = inference_set
 
         dataset.rename(columns={"Score": "Labels"}, inplace=True)
 

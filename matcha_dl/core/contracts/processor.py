@@ -37,6 +37,7 @@ class IProcessor:
         self._sampler = sampler
         self._cands = None
         self._seed = seed
+        self._output_file = None
 
     @property
     def matcha_scores(self) -> Dict:
@@ -83,8 +84,27 @@ class IProcessor:
         """
         return np.random.RandomState(self._seed)
 
+    @property
+    def output_file(self) -> str:
+        """Gets the output file.
+
+        Returns:
+            str: The output file.
+        """
+        return self._output_file
+    
+    @property
+    def has_cache(self) -> bool:
+        """
+        Check if the output file exists.
+
+        Returns:
+            bool: True if the output file exists, False otherwise.
+        """
+        return self.output_file.is_file()
+
     def process(
-        self, scores_file: str, ref_file: Optional[str] = None, cands_file: Optional[str] = None
+        self, scores_file: str, ref_file: Optional[str] = None, cands_file: Optional[str] = None, output_file: Optional[str] = None
     ) -> MlpDataset:
         """Processes the data.
 
@@ -92,12 +112,15 @@ class IProcessor:
             scores_file (str): The scores file.
             ref_file (str, optional): The reference file. Defaults to None.
             cands_file (str, optional): The candidates file. Defaults to None.
+            output_file (str, optional): The output file. Defaults to None.
 
         Returns:
             MlpDataset: The processed data.
         """
 
         self._matcha_scores = self._matcha_scores_to_dict(scores_file)
+
+        self._output_file = output_file
 
         if ref_file:
             self._refs = pd.read_csv(str(ref_file), sep="\t")
@@ -112,7 +135,16 @@ class IProcessor:
                 str(cands_file)
             ).unscored_cand_maps()
 
-        self._process()
+        if self.has_cache:
+            return MlpDataset.load(self.output_file, ref=self.refs, candidates=self.candidates)
+
+        else:
+            dataset = self._process()
+
+            if output_file:
+                dataset.save(self.output_file)
+
+            return dataset
 
     @abstractmethod
     def _process(self):
