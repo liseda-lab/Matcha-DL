@@ -1,5 +1,5 @@
 import itertools
-from typing import List
+from typing import List, Optional
 
 from matcha_dl.core.contracts.model import IModel, Tensor, nn
 
@@ -21,11 +21,11 @@ def pairwise(iterable: List[int]) -> zip:
 
 class MlpClassifier(IModel):
 
-    def __init__(self, n: int, layers: List[int], n_classes: int, **kwargs):
+    def __init__(self, layers: List[int], n: Optional[int] = 5, n_classes: Optional[int] = 1, **kwargs):
         """
         Parameters:
-            n (int): The size of the input layer.
             layers (List[int]): The sizes of the hidden layers.
+            n (int): The size of the input layer.
             n_classes (int): The size of the output layer.
         """
         super(MlpClassifier, self).__init__()
