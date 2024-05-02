@@ -14,7 +14,7 @@ EntityMapping = DeepOntoEntityMapping
 
 import random
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Type
 
 import numpy as np
 import pandas as pd
@@ -40,9 +40,9 @@ class ITrainer:
     def __init__(
         self,
         dataset: MlpDataset,
-        model: Module,
-        loss: ILoss,
-        optimizer: Optimizer,
+        model: Type[Module],
+        loss: Type[ILoss],
+        optimizer: Type[Optimizer],
         loss_params: Optional[Dict[str, Any]] = {},
         optimizer_params: Optional[Dict[str, Any]] = {},
         model_params: Optional[Dict[str, Any]] = {},
@@ -50,6 +50,7 @@ class ITrainer:
         device: Optional[int] = 0,
         output_dir: Optional[Path] = None,
         seed: Optional[int] = 42,
+        use_last_checkpoint: Optional[bool] = False,
         **kwargs,
     ):
 
@@ -59,7 +60,7 @@ class ITrainer:
         self._device = device
         self._model = model(**model_params).to(self.device)
         self._optimizer = optimizer(self._model.parameters(), **optimizer_params)
-        self._loss = loss(**loss_params).to(self.device)
+        self._loss = loss(device=self.device, **loss_params)
         self._earlystoping = earlystoping
 
         self._output_dir = output_dir
@@ -67,10 +68,18 @@ class ITrainer:
 
         self._epoch = 1
 
+        # Load Kwargs
+
+        self._logger = kwargs.get("logger")
+
         # Load checkpoint if exists
 
-        if self.checkpoint_dir.is_dir():
-            self.load_checkpoint()
+        if use_last_checkpoint:
+            if self.checkpoints_dir.is_dir():
+                self.load_checkpoint()
+                self.log(f"Loaded checkpoint {self._get_last_checkpoint()}")
+            else:
+                self.log(f"No checkpoints found in {self.checkpoints_dir}")
 
         # Create output directories
 
@@ -158,13 +167,22 @@ class ITrainer:
 
     def _save_global_alignment(self, preds: List[EntityMapping]):
 
-        global_res = EntityMapping.sort_entity_mappings_by_score(preds, k=1)
+        # Get the best mapping for each unique source entity
 
-        global_res_save = [EntityMapping(src, trg, "=", score) for src, trg, score in global_res]
+        all_sources = {}
+        for ent_map in preds:
+            if ent_map.head not in all_sources or ent_map.score > all_sources[ent_map.head].score:
+                all_sources[ent_map.head] = ent_map
+
+        # Extract the mappings as tuples
+
+        global_alignment = EntityMapping.as_tuples(list(all_sources.values()), with_score=True)
+
+        # Save the global alignment
 
         global_dir = str(self.alignment_dir) + f"/{'src2tgt.maps'}_global.tsv"
 
-        pd.DataFrame(global_res_save, columns=["SrcEntity", "TgtEntity", "Score"]).to_csv(
+        pd.DataFrame(global_alignment, columns=["SrcEntity", "TgtEntity", "Score"]).to_csv(
             global_dir, sep="\t", index=False
         )
 
@@ -213,3 +231,10 @@ class ITrainer:
             res = 0
 
         return res
+    
+    def log(self, msg: str, level: Optional[str] = "info"):
+        if self._logger:
+            getattr(self._logger, level)(msg)
+
+        else:
+            print(msg)

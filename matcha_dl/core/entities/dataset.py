@@ -2,6 +2,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+from ast import literal_eval
 
 from matcha_dl.core.entities.dp.anchor_mappings import AnchoredOntoMappings
 
@@ -46,7 +47,7 @@ class MlpDataset:
 
     @classmethod
     def load(cls, file_path: str, ref: Optional[DataFrame] = None, candidates: Optional[AnchoredOntoMappings] = None) -> "MlpDataset":
-        return cls(dataframe=pd.read_csv(file_path), ref=ref, candidates=candidates)
+        return cls(dataframe=pd.read_csv(file_path, converters={'Features': literal_eval}), ref=ref, candidates=candidates)
         
 
 
