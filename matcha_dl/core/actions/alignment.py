@@ -9,6 +9,7 @@ from matcha_dl.impl.negative_sampler import RandomNegativeSampler
 from matcha_dl.impl.processor import MainProcessor
 from matcha_dl.impl.trainer import MLPTrainer
 from matcha_dl.core.entities.configs import ConfigModel
+from matcha_dl.core.values import N_CLASSES
 
 class AlignmentAction(Protocol):
     @staticmethod
@@ -27,22 +28,19 @@ class AlignmentAction(Protocol):
             configs = ConfigModel.load_config(configs_file_path)
 
         else:
-            logging.info(f"Loading default configuration")
             configs = ConfigModel()
 
         # Loading logging configuration from configs
 
-        logging.basicConfig(
-            filename=str(Path(output_dir_path) / "matcha_dl.log"),
-            level=configs.logging_level,
-        )
+        logger = logging.getLogger('matcha-dl')
+        logger.setLevel(configs.logging_level)
 
-        logging.info(f"Logging level set to {configs.logging_level}")
+        logger.debug(f"Logging level set to {configs.logging_level}")
 
         if configs_file_path:
-            logging.info(f"Using configuration from {configs_file_path}")
+            logger.info(f"Using configuration from {configs_file_path}")
         else:
-            logging.info(f"Using default configuration")
+            logger.info(f"Using default configuration")
 
         # Load JVM
 
@@ -50,27 +48,28 @@ class AlignmentAction(Protocol):
 
         # Matcha module
 
-        logging.info(f"Matching {source_file_path} and {target_file_path}")
+        logger.info(f"Matching {source_file_path} and {target_file_path}")
 
         matcha = Matcha(
             output_file=str(Path(output_dir_path) / 'matcha_scores.csv') , 
             log_file=str(Path(output_dir_path) / 'matcha.log') ,
+            logger=logger,
             **configs.matcha_params.model_dump()
         )
 
-        logging.info(f"Computing matcha scores")
-        logging.info(f"Matcha logs are being written to {matcha.log_file}")
+        logger.info(f"Computing matcha scores...")
+        logger.debug(f"Matcha logs are being written to {matcha.log_file}")
 
-        matcha_output_file = str(matcha.match(source_file_path, target_file_path))
-
-        logging.info(f"Matcha scores written to {matcha_output_file}")
+        matcha_output_file, cache_ok = matcha.match(source_file_path, target_file_path)
 
         # Processor module
 
-        logging.info(f"Processing dataset")
+        logger.info(f"Processing dataset..")
         processor = MainProcessor(
             sampler=RandomNegativeSampler(n_samples=configs.number_of_negatives, seed=configs.seed),
-            seed=configs.seed
+            seed=configs.seed,
+            logger=logger,
+            cache_ok=cache_ok,
         )
 
         dataset = processor.process(
@@ -80,45 +79,49 @@ class AlignmentAction(Protocol):
             output_file=str(Path(output_dir_path) / 'processed_dataset.csv')
         )
 
-        logging.info(f"Dataset parsed")
+        logger.info(f"Dataset parsed")
 
         # Trainer module
 
         ## Parse model params
 
-        model_params = configs.model_params.params
-        model_params['n'] = dataset.x().shape[1]
-        model_params['n_classes'] = dataset.y().shape[1]
+        if reference_file_path:
+
+            model_params = configs.model.params
+            model_params['n'] = dataset.x().shape[1]
+            model_params['n_classes'] = N_CLASSES
+
+        else:
+            model_params = configs.model.params
 
         ## Train Model
 
-        # TODO add has cache method to trainer that loads last checkpoint if it has any
-
         trainer = MLPTrainer(
             dataset=dataset,
-            model=configs.model_params.model,
-            loss=configs.loss_params.loss,
-            optimizer=configs.optimizer_params.optimizer,
-            loss_params=configs.loss_params.params,
-            optimizer_params=configs.optimizer_params.params,
+            model=configs.model.model,
+            loss=configs.loss.loss,
+            optimizer=configs.optimizer.optimizer,
+            loss_params=configs.loss.params,
+            optimizer_params=configs.optimizer.params,
             model_params=model_params,
             earlystoping=None,
             device=configs.device,
             output_dir=Path(output_dir_path),
             seed=configs.seed,
             use_last_checkpoint=configs.use_last_checkpoint,
+            logger=logger,
         )
 
         if reference_file_path:
-            logging.info(f"Training model with {reference_file_path}")
+            logger.info(f"Training model with {reference_file_path}")
             trainer.train(**configs.training_params.model_dump())
 
-        logging.info(f"Computing alignment")
+        logger.info(f"Computing alignment...")
 
         alignment = trainer.predict(threshold=configs.threshold)
 
-        logging.info(f"Writing alignment")
+        logger.info(f"Writing alignment...")
 
         trainer.save_alignment(alignment)
 
-        logging.info(f"Alignment written to {trainer.alignment_dir}")
+        logger.info(f"Alignment written to {trainer.alignment_dir}")

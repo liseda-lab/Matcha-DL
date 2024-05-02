@@ -18,34 +18,44 @@ class MainProcessor(IProcessor):
         if self.refs:
 
             # get training set
+            self.log("Creating Training Set...", level="debug")
 
             # get positive samples from refs
             positive_set = self.refs
 
             # get negative samples from sampler
+            self.log("#Sampling Negative Samples...", level="debug")
             negative_set = self.sampler.sample(positive_set["SrcEntity"], positive_set["TgtEntity"])
 
             # combine positive and negative samples
             training_set = pd.concat([positive_set, negative_set], ignore_index=True)
 
             # get scores features from matcha
+            self.log("#Getting Scores...", level="debug")
             training_set = self._get_scores(training_set)
 
             # assign training label
             training_set["train"] = True
             training_set["inference"] = False
 
+            self.log("#Shuffling Training Set...", level="debug")
+
             training_set = training_set.sample(frac=1).reset_index(drop=True)
 
             # Inference set
 
             # get all sources not in refs
+            self.log("Creating Inference Set...", level="debug")
+            self.log("#Getting sources for inference (matcha - refs) #assuming global align", level="debug")
 
             inference_sources = set(self.matcha_scores.keys()) - set(
                 self.refs["SrcEntity"].unique()
             )
 
         else:
+
+            self.log("Creating Inference Set...", level="debug")
+            self.log("#Getting all sources from matcha #assuming global align", level="debug")
 
             # if no refs, get all sources from matcha
 
@@ -54,14 +64,19 @@ class MainProcessor(IProcessor):
         if self.candidates:
 
             # if get sources from candidates instead of refs
+            self.log("#Local Alignment", level="debug")
+            self.log("##Getting sources for inference (candidates)", level="debug")
 
             inference_sources = self.candidates.map_dict.keys()
 
+        self.log("#Getting candidates from sources", level="debug")
         inference_set = pd.DataFrame(
             self._get_cands(inference_sources), columns=["SrcEntity", "TgtEntity", "Score"]
         )
 
         # get scores features from matcha
+
+        self.log("#Getting Scores...", level="debug")
 
         inference_set = self._get_scores(inference_set)
 
@@ -74,12 +89,16 @@ class MainProcessor(IProcessor):
 
         if self.refs:
 
+            self.log("#Combining Training and Inference Sets...", level="debug")
+
             dataset = pd.concat([training_set, inference_set], ignore_index=True)
 
         else:
             dataset = inference_set
 
         dataset.rename(columns={"Score": "Labels"}, inplace=True)
+
+        self.log("#Processing Done", level="debug")
 
         return MlpDataset(dataset, ref=self.refs, candidates=self.candidates)
 

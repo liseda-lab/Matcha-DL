@@ -5,6 +5,8 @@ from abc import abstractmethod
 from pathlib import Path
 import logging
 
+from typing import Optional, Tuple
+
 MATCHA = "matcha"
 
 
@@ -16,6 +18,7 @@ class IMatcha:
         output_file: str = "matcha_scores.csv",
         log_file: str = "matcha.log",
         max_heap="8G",
+        **kwargs,
     ) -> None:
         """
         Initialize Matcher.
@@ -32,6 +35,8 @@ class IMatcha:
         self.output_file = Path(output_file)
         self.log_file = Path(log_file)
         self.max_heap = max_heap
+
+        self.logger = kwargs.get('logger')
 
     @property
     @abstractmethod
@@ -65,7 +70,7 @@ class IMatcha:
         """
         return self.output_file.is_file()
 
-    def match(self, ont1: str, ont2: str) -> Path:
+    def match(self, ont1: str, ont2: str) -> Tuple[str, bool]:
         """
         Match two ontologies and write the result to the output file.
 
@@ -76,7 +81,13 @@ class IMatcha:
         Returns:
             Path: The path to the output file.
         """
-        if not self.has_cache:
+        if self.has_cache:
+
+            self.log(f"Matcha scores already exist at {self.output_file}. Skipping computation.", level="info")
+
+            return str(self.output_file), True
+
+        else:
 
             current_cwd = os.getcwd()
             os.chdir(self.matcha_path)
@@ -95,8 +106,7 @@ class IMatcha:
                 sys.executable,
             ]
 
-            # TODO take out print statement when done debugging
-            print("Running command:", ' '.join(jar_command))
+            self.log("Running command:" + ' '.join(jar_command), level="debug")
 
             try:
                 with open(str(self.log_file), 'w') as f:
@@ -107,4 +117,13 @@ class IMatcha:
 
             os.chdir(current_cwd)
 
-        return self.output_file
+            self.log(f"Matcha scores written to {self.output_file}", level="info")
+
+            return str(self.output_file), False
+    
+    def log(self, msg: str, level: Optional[str] = "info") -> None:
+        if self.logger:
+            getattr(self.logger, level)(msg)
+
+        else:
+            print(msg)

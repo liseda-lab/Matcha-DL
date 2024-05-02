@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from typing import Dict, Optional
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -24,7 +25,7 @@ class IProcessor:
         random (np.random.RandomState): The random state.
     """
 
-    def __init__(self, sampler: Optional[INegativeSampler] = None, seed: Optional[int] = 42):
+    def __init__(self, sampler: Optional[INegativeSampler] = None, seed: Optional[int] = 42, **kwargs):
         """
 
         Args:
@@ -38,6 +39,9 @@ class IProcessor:
         self._cands = None
         self._seed = seed
         self._output_file = None
+
+        self._logger = kwargs.get("logger")
+        self._cache_ok = kwargs.get("cache_ok", True)
 
     @property
     def matcha_scores(self) -> Dict:
@@ -101,7 +105,9 @@ class IProcessor:
         Returns:
             bool: True if the output file exists, False otherwise.
         """
-        return self.output_file.is_file()
+        if self._cache_ok and self.output_file:
+            return self.output_file.is_file()
+        return False
 
     def process(
         self, scores_file: str, ref_file: Optional[str] = None, cands_file: Optional[str] = None, output_file: Optional[str] = None
@@ -118,9 +124,7 @@ class IProcessor:
             MlpDataset: The processed data.
         """
 
-        self._matcha_scores = self._matcha_scores_to_dict(scores_file)
-
-        self._output_file = output_file
+        self._output_file = Path(output_file) if output_file else None
 
         if ref_file:
             self._refs = pd.read_csv(str(ref_file), sep="\t")
@@ -136,12 +140,19 @@ class IProcessor:
             ).unscored_cand_maps()
 
         if self.has_cache:
+            self.log(f"Cache found. Loading cached dataset from {self.output_file}")
             return MlpDataset.load(self.output_file, ref=self.refs, candidates=self.candidates)
 
         else:
+            self.log("Processing dataset", level="debug")
+
+            # Load scores
+            self._matcha_scores = self._matcha_scores_to_dict(scores_file)
+
             dataset = self._process()
 
             if output_file:
+                self.log(f"Saving dataset to {output_file}", level="debug")
                 dataset.save(self.output_file)
 
             return dataset
@@ -161,3 +172,10 @@ class IProcessor:
             Dict: The dictionary of matcha scores.
         """
         pass
+
+    def log(self, msg: str, level: Optional[str] = "info"):
+        if self._logger:
+            getattr(self._logger, level)(msg)
+
+        else:
+            print(msg)
