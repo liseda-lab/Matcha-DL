@@ -60,7 +60,7 @@ class MLPTrainer(ITrainer):
         df = df[df[kind] == True]
 
         # if supervised use model to calculate scores
-        if self.dataset.reference:
+        if self.dataset.reference is not None:
 
             data, _ = self._load_data(kind=kind)
             self._model.eval()
@@ -98,7 +98,7 @@ class MLPTrainer(ITrainer):
 
         if kind == "train":
             ds = TensorDataset(x, y)
-            if not batch_size:
+            if batch_size is None:
                 batch_size = 1
 
             return DataLoader(ds, batch_size=batch_size, shuffle=True)

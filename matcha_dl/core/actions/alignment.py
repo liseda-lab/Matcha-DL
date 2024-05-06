@@ -10,6 +10,9 @@ from matcha_dl.impl.processor import MainProcessor
 from matcha_dl.impl.trainer import MLPTrainer
 from matcha_dl.core.entities.configs import ConfigModel
 from matcha_dl.core.values import N_CLASSES
+import time
+
+
 
 class AlignmentAction(Protocol):
     @staticmethod
@@ -21,10 +24,12 @@ class AlignmentAction(Protocol):
         reference_file_path: Optional[str] = None,
         candidates_file_path: Optional[str] = None,
     ) -> None:
+        
+        start_time = time.time()
 
         # Load Configs
 
-        if configs_file_path:
+        if configs_file_path is not None:
             configs = ConfigModel.load_config(configs_file_path)
 
         else:
@@ -37,7 +42,7 @@ class AlignmentAction(Protocol):
 
         logger.debug(f"Logging level set to {configs.logging_level}")
 
-        if configs_file_path:
+        if configs_file_path is not None:
             logger.info(f"Using configuration from {configs_file_path}")
         else:
             logger.info(f"Using default configuration")
@@ -85,7 +90,7 @@ class AlignmentAction(Protocol):
 
         ## Parse model params
 
-        if reference_file_path:
+        if reference_file_path is not None:
 
             model_params = configs.model.params
             model_params['n'] = dataset.x().shape[1]
@@ -112,7 +117,7 @@ class AlignmentAction(Protocol):
             logger=logger,
         )
 
-        if reference_file_path:
+        if reference_file_path is not None:
             logger.info(f"Training model with {reference_file_path}")
             trainer.train(**configs.training_params.model_dump())
 
@@ -125,3 +130,7 @@ class AlignmentAction(Protocol):
         trainer.save_alignment(alignment)
 
         logger.info(f"Alignment written to {trainer.alignment_dir}")
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logger.info(f"Alignment completed in {elapsed_time} seconds")

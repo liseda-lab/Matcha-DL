@@ -159,7 +159,7 @@ class ITrainer:
 
     def save_alignment(self, preds: List[EntityMapping]):
 
-        if self.dataset.candidates:
+        if self.dataset.candidates is not None:
             return self._save_local_alignment(preds)
 
         else:
@@ -188,7 +188,7 @@ class ITrainer:
 
     def _save_local_alignment(self, preds: List[EntityMapping]):
 
-        ranking_results = fill_anchored_scores(self.dataset.candidates, preds)
+        ranking_results = fill_anchored_scores(self.dataset.candidates.values, preds)
 
         local_dir = str(self.alignment_dir) + f"/{'src2tgt.maps'}_local.tsv"
 
@@ -233,7 +233,7 @@ class ITrainer:
         return res
     
     def log(self, msg: str, level: Optional[str] = "info"):
-        if self._logger:
+        if self._logger is not None:
             getattr(self._logger, level)(msg)
 
         else:

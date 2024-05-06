@@ -7,7 +7,7 @@ import pandas as pd
 
 from matcha_dl.core.contracts.negative_sampler import INegativeSampler
 from matcha_dl.core.entities.dataset import MlpDataset
-from matcha_dl.core.entities.dp.anchor_mappings import AnchoredOntoMappings
+from matcha_dl.impl.dp.utils import read_table
 
 PROCESSOR = "processor"
 
@@ -71,11 +71,11 @@ class IProcessor:
         return self._sampler
 
     @property
-    def candidates(self) -> AnchoredOntoMappings:
+    def candidates(self) -> DataFrame:
         """Gets the ranking candidates.
 
         Returns:
-            AnchoredOntoMappings: The ranking candidates.
+            DataFrame: The ranking candidates.
         """
         return self._cands
 
@@ -105,7 +105,7 @@ class IProcessor:
         Returns:
             bool: True if the output file exists, False otherwise.
         """
-        if self._cache_ok and self.output_file:
+        if self._cache_ok and self.output_file is not None:
             return self.output_file.is_file()
         return False
 
@@ -126,18 +126,16 @@ class IProcessor:
 
         self._output_file = Path(output_file) if output_file else None
 
-        if ref_file:
-            self._refs = pd.read_csv(str(ref_file), sep="\t")
+        if ref_file is not None:
+            self._refs = read_table(ref_file)
 
             # if refs exist sampler must not be None
 
-            if not self.sampler:
+            if self.sampler is None:
                 raise ValueError("If ref file is provided, sampler must be provided")
 
-        if cands_file:
-            self._cands = AnchoredOntoMappings.read_table_mappings(
-                str(cands_file)
-            ).unscored_cand_maps()
+        if cands_file is not None:
+            self._cands = read_table(cands_file)
 
         if self.has_cache:
             self.log(f"Cache found. Loading cached dataset from {self.output_file}")
@@ -151,7 +149,7 @@ class IProcessor:
 
             dataset = self._process()
 
-            if output_file:
+            if output_file is not None:
                 self.log(f"Saving dataset to {output_file}", level="debug")
                 dataset.save(self.output_file)
 
@@ -174,7 +172,7 @@ class IProcessor:
         pass
 
     def log(self, msg: str, level: Optional[str] = "info"):
-        if self._logger:
+        if self._logger is not None:
             getattr(self._logger, level)(msg)
 
         else:

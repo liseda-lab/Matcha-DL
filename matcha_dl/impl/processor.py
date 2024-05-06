@@ -5,6 +5,8 @@ import pandas as pd
 from matcha_dl.core.entities.dataset import MlpDataset
 from matcha_dl.core.contracts.processor import IProcessor
 
+from ast import literal_eval
+
 
 class MainProcessor(IProcessor):
 
@@ -15,7 +17,7 @@ class MainProcessor(IProcessor):
             pd.DataFrame: The processed data.
         """
 
-        if self.refs:
+        if self.refs is not None:
 
             # get training set
             self.log("Creating Training Set...", level="debug")
@@ -25,7 +27,7 @@ class MainProcessor(IProcessor):
 
             # get negative samples from sampler
             self.log("#Sampling Negative Samples...", level="debug")
-            negative_set = self.sampler.sample(positive_set["SrcEntity"], positive_set["TgtEntity"])
+            negative_set = self.sampler.sample(positive_set.SrcEntity, positive_set.TgtEntity)
 
             # combine positive and negative samples
             training_set = pd.concat([positive_set, negative_set], ignore_index=True)
@@ -59,15 +61,19 @@ class MainProcessor(IProcessor):
 
             # if no refs, get all sources from matcha
 
-            inference_sources = self.matcha_scores.keys()
+            inference_sources = set(self.matcha_scores.keys())  
 
-        if self.candidates:
+        if self.candidates is not None:
 
             # if get sources from candidates instead of refs
             self.log("#Local Alignment", level="debug")
-            self.log("##Getting sources for inference (candidates)", level="debug")
 
-            inference_sources = self.candidates.map_dict.keys()
+            # In the current implementation, this block is not usefull since if candidates exist
+            # the inference sources are not used, but the candidates are used directly 
+
+            # self.log("##Getting sources for inference (candidates)", level="debug")
+
+            # inference_sources = self.candidates.SrcEntity
 
         self.log("#Getting candidates from sources", level="debug")
         inference_set = pd.DataFrame(
@@ -87,7 +93,7 @@ class MainProcessor(IProcessor):
 
         # combine training and inference sets
 
-        if self.refs:
+        if self.refs is not None:
 
             self.log("#Combining Training and Inference Sets...", level="debug")
 
@@ -158,15 +164,15 @@ class MainProcessor(IProcessor):
             List[List[Union[str, int]]]: The candidates.
         """
 
-        if self.candidates:
+        if self.candidates is not None:
 
             # Local Matching Candidates
             # Retrieved from candidates input file
 
             return [
                 [source, cand, 0]
-                for source in sources
-                for cand in self.candidates.map_dict.get(source)
+                for source, _, target_cands in self.candidates.values
+                for cand in literal_eval(target_cands)
             ]
 
         else:

@@ -4,6 +4,10 @@ from typing import Optional
 
 from deeponto.align.mapping import EntityMapping
 
+import pandas as pd
+
+from ast import literal_eval
+
 
 def sort_dict_by_values(dic: dict, desc: bool = True, top_k: Optional[int] = None):
     """Return a sorted dict by values with top k reserved"""
@@ -25,7 +29,7 @@ def fill_anchored_scores(ref_anchored_maps, pred_maps):
 
     results = []
     for src_ref_class, tgt_ref_class, tgt_cands in ref_anchored_maps:
-        tgt_cands = eval(tgt_cands)
+        tgt_cands = literal_eval(tgt_cands)
         scored_cands = []
         for tgt_cand in tgt_cands:
             try:
@@ -36,3 +40,11 @@ def fill_anchored_scores(ref_anchored_maps, pred_maps):
 
         results.append((src_ref_class, tgt_ref_class, scored_cands))
     return results
+
+na_vals = pd.io.parsers.readers.STR_NA_VALUES.difference({"NULL", "null", "n/a"})
+
+def read_table(file_path: str):
+    """Read tsv file as pandas dataframe without treating "null" as empty string.
+    """
+    sep = "\t" if file_path.endswith(".tsv") else ","
+    return pd.read_csv(file_path, sep=sep, na_values=na_vals, keep_default_na=False)

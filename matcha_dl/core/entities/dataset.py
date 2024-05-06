@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 from ast import literal_eval
 
-from matcha_dl.core.entities.dp.anchor_mappings import AnchoredOntoMappings
-
 DataFrame = pd.DataFrame
 
 
@@ -15,7 +13,7 @@ class MlpDataset:
         self,
         dataframe: DataFrame,
         ref: Optional[DataFrame] = None,
-        candidates: Optional[AnchoredOntoMappings] = None,
+        candidates: Optional[DataFrame] = None,
     ) -> None:
 
         self._ref = ref
@@ -27,7 +25,7 @@ class MlpDataset:
         return self._ref
 
     @property
-    def candidates(self) -> AnchoredOntoMappings:
+    def candidates(self) -> DataFrame:
         return self._candidates
 
     @property
@@ -46,7 +44,7 @@ class MlpDataset:
         return save_path
 
     @classmethod
-    def load(cls, file_path: str, ref: Optional[DataFrame] = None, candidates: Optional[AnchoredOntoMappings] = None) -> "MlpDataset":
+    def load(cls, file_path: str, ref: Optional[DataFrame] = None, candidates: Optional[DataFrame] = None) -> "MlpDataset":
         return cls(dataframe=pd.read_csv(file_path, converters={'Features': literal_eval}), ref=ref, candidates=candidates)
         
 
