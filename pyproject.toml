@@ -22,7 +22,7 @@ pyyaml = "^6.0.1"
 sentence-transformers = "^2.7.0"
 
 [tool.poetry.scripts]
-matchadl = "matcha_dl.cli:main"
+matchadl = "matcha_dl.delivery.cli:main"
 
 
 [tool.poetry.group.prebuild.dependencies]

@@ -15,10 +15,37 @@ pip install matcha-dl
 
 ## USAGE
 
+### CLI
+
 Matcha DL provides a command line interface for computing the alignment between two ontologies. Here's how you can use it:
 
 ```bash
-matcha-dl --source_ontology_file <source_file_path> --target_ontology_file <target_file_path> --output_dir <output_dir_path> [--reference_file <reference_file_path>] [--candidates_file <candidates_file_path>] [--config_file <config_file_path>]
+matchadl --source_ontology_file <source_file_path> --target_ontology_file <target_file_path> --output_dir <output_dir_path> [--reference_file <reference_file_path>] [--candidates_file <candidates_file_path>] [--config_file <config_file_path>]
+```
+
+### API
+
+#### AlignmentRunner Class
+
+The `AlignmentRunner` is a quick and easy class that can be programaticly imported to run an alignemnt using Matcha-DL.
+
+Here's an example on how to use it:
+
+```python
+
+from matcha_dl import AlignmentRunner
+
+runner = AlignmentRunner(
+    source_ontology_file="path/to/source_ontology_file",
+    target_ontology_file="path/to/target_ontology_file",
+    output_dir="path/to/output_dir",
+    reference_file="path/to/reference_file",
+    candidates_file="path/to/candidates_file",
+    config_file="path/to/config_file"
+)
+
+runner.run()
+
 ```
 
 ### Arguments

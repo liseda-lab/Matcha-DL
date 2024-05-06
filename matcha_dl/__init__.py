@@ -24,3 +24,7 @@ def get_config_path():
 config = read_yaml(
     get_config_path()
 )
+
+# Get AlignmentRunner
+
+from .delivery.api import AlignmentRunner
