@@ -5,9 +5,6 @@ Matcha-DL is an extension of the matching system Matcha to tackle semi-supervise
 
 ## Installation
 
-**Still under development** :
-The package is stil undergoing testing, we will have a distribution available on Pypi soon
-
 To install Matcha DL, you can use pip:
 ```bash
 pip install matcha-dl
