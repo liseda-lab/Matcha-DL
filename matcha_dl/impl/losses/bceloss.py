@@ -6,7 +6,7 @@ from matcha_dl.core.contracts.loss import ILoss, Tensor
 from typing import Union, List
 
 
-class BCELossWeighted(ILoss):
+class BCELossWeighted(torch.nn.BCELoss, ILoss):
     """
     Binary Cross Entropy Loss Weighted.
     """
@@ -19,11 +19,14 @@ class BCELossWeighted(ILoss):
             weight (List): A list of weights.
             device (int): The device on which to run the computations.
         """
-        super(BCELossWeighted, self).__init__()
+        size_average = None
+        reduce = None
+        reduction = 'none'
+        weight = torch.tensor(weight).to(device)
 
         self.dev = device
-        self.weight = torch.tensor(weight).to(self.dev)
-        self.reduction = "none"
+
+        super().__init__(weight, size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         """
@@ -36,8 +39,9 @@ class BCELossWeighted(ILoss):
         Returns:
             Tensor: The loss value as a tensor.
         """
-        weight_ = self.weight[target.data.view(-1).to(self.dev).long()].view_as(target)
 
+        weight_ = self.weight[target.data.view(-1).to(self.dev).long()].view_as(target)
+        
         loss = F.binary_cross_entropy(input, target, weight=None, reduction=self.reduction)
         loss_class_weighted = loss * weight_
         return loss_class_weighted.mean()

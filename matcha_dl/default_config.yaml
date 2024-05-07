@@ -31,7 +31,7 @@ matcha_params:
 
 training_params:
   epochs: 10
-  batch_size: None
+  batch_size: 1
   save_interval: 5
 
 model:

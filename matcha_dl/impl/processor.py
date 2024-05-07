@@ -27,7 +27,9 @@ class MainProcessor(IProcessor):
 
             # get negative samples from sampler
             self.log("#Sampling Negative Samples...", level="debug")
-            negative_set = self.sampler.sample(positive_set.SrcEntity, positive_set.TgtEntity)
+            negative_set = pd.DataFrame(self.sampler.sample(positive_set.SrcEntity, positive_set.TgtEntity),
+                                        columns=["SrcEntity", "TgtEntity", "Score"]
+                                        )
 
             # combine positive and negative samples
             training_set = pd.concat([positive_set, negative_set], ignore_index=True)

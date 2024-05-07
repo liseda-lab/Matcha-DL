@@ -1,9 +1,9 @@
 import warnings
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 import torch as th
-import tqdm
+from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.tensorboard import SummaryWriter
 
@@ -12,7 +12,7 @@ from matcha_dl.core.contracts.trainer import EntityMapping, ITrainer
 
 class MLPTrainer(ITrainer):
 
-    def train(self, epochs=50, batch_size=None, save_interval=5):
+    def train(self, epochs: Optional[int] = 50, batch_size: Optional[int] = None, save_interval: Optional[int] = 5):
 
         warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -52,7 +52,7 @@ class MLPTrainer(ITrainer):
         # TODO add AML repair
         pass
 
-    def predict(self, threshold: Optional[float] = 0.7, **kwargs):
+    def predict(self, threshold: Optional[float] = 0.7, **kwargs) -> List[EntityMapping]:
 
         kind = "inference"
 
@@ -84,7 +84,7 @@ class MLPTrainer(ITrainer):
                 for _, dp in df.iterrows() if dp["matcha"] >= threshold
             ]
 
-    def _load_data(self, kind="train", batch_size=None):
+    def _load_data(self, kind: Optional[str] = "train", batch_size: Optional[int] = 1) -> DataLoader:
 
         x = self.dataset.x(kind)
         y = self.dataset.y(kind)
@@ -98,8 +98,6 @@ class MLPTrainer(ITrainer):
 
         if kind == "train":
             ds = TensorDataset(x, y)
-            if batch_size is None:
-                batch_size = 1
 
             return DataLoader(ds, batch_size=batch_size, shuffle=True)
 
