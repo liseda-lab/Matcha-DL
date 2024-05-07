@@ -1,11 +1,10 @@
+from ast import literal_eval
 from typing import Dict, List, Union
 
 import pandas as pd
 
-from matcha_dl.core.entities.dataset import MlpDataset
 from matcha_dl.core.contracts.processor import IProcessor
-
-from ast import literal_eval
+from matcha_dl.core.entities.dataset import MlpDataset
 
 
 class MainProcessor(IProcessor):
@@ -27,9 +26,10 @@ class MainProcessor(IProcessor):
 
             # get negative samples from sampler
             self.log("#Sampling Negative Samples...", level="debug")
-            negative_set = pd.DataFrame(self.sampler.sample(positive_set.SrcEntity, positive_set.TgtEntity),
-                                        columns=["SrcEntity", "TgtEntity", "Score"]
-                                        )
+            negative_set = pd.DataFrame(
+                self.sampler.sample(positive_set.SrcEntity, positive_set.TgtEntity),
+                columns=["SrcEntity", "TgtEntity", "Score"],
+            )
 
             # combine positive and negative samples
             training_set = pd.concat([positive_set, negative_set], ignore_index=True)
@@ -50,7 +50,10 @@ class MainProcessor(IProcessor):
 
             # get all sources not in refs
             self.log("Creating Inference Set...", level="debug")
-            self.log("#Getting sources for inference (matcha - refs) #assuming global align", level="debug")
+            self.log(
+                "#Getting sources for inference (matcha - refs) #assuming global align",
+                level="debug",
+            )
 
             inference_sources = set(self.matcha_scores.keys()) - set(
                 self.refs["SrcEntity"].unique()
@@ -63,7 +66,7 @@ class MainProcessor(IProcessor):
 
             # if no refs, get all sources from matcha
 
-            inference_sources = set(self.matcha_scores.keys())  
+            inference_sources = set(self.matcha_scores.keys())
 
         if self.candidates is not None:
 
@@ -71,7 +74,7 @@ class MainProcessor(IProcessor):
             self.log("#Local Alignment", level="debug")
 
             # In the current implementation, this block is not usefull since if candidates exist
-            # the inference sources are not used, but the candidates are used directly 
+            # the inference sources are not used, but the candidates are used directly
 
             # self.log("##Getting sources for inference (candidates)", level="debug")
 

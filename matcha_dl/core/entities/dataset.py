@@ -1,8 +1,8 @@
+from ast import literal_eval
 from typing import Optional
 
 import numpy as np
 import pandas as pd
-from ast import literal_eval
 
 DataFrame = pd.DataFrame
 
@@ -44,9 +44,11 @@ class MlpDataset:
         return save_path
 
     @classmethod
-    def load(cls, file_path: str, ref: Optional[DataFrame] = None, candidates: Optional[DataFrame] = None) -> "MlpDataset":
-        return cls(dataframe=pd.read_csv(file_path, converters={'Features': literal_eval}), ref=ref, candidates=candidates)
-        
-
-
-    
+    def load(
+        cls, file_path: str, ref: Optional[DataFrame] = None, candidates: Optional[DataFrame] = None
+    ) -> "MlpDataset":
+        return cls(
+            dataframe=pd.read_csv(file_path, converters={"Features": literal_eval}),
+            ref=ref,
+            candidates=candidates,
+        )

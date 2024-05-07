@@ -21,7 +21,9 @@ def pairwise(iterable: List[int]) -> zip:
 
 class MlpClassifier(IModel):
 
-    def __init__(self, layers: List[int], n: Optional[int] = 5, n_classes: Optional[int] = 1, **kwargs):
+    def __init__(
+        self, layers: List[int], n: Optional[int] = 5, n_classes: Optional[int] = 1, **kwargs
+    ):
         """
         Parameters:
             layers (List[int]): The sizes of the hidden layers.

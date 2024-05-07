@@ -1,6 +1,6 @@
 from abc import abstractmethod
-from typing import Dict, Optional
 from pathlib import Path
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -25,7 +25,9 @@ class IProcessor:
         random (np.random.RandomState): The random state.
     """
 
-    def __init__(self, sampler: Optional[INegativeSampler] = None, seed: Optional[int] = 42, **kwargs):
+    def __init__(
+        self, sampler: Optional[INegativeSampler] = None, seed: Optional[int] = 42, **kwargs
+    ):
         """
 
         Args:
@@ -96,7 +98,7 @@ class IProcessor:
             str: The output file.
         """
         return self._output_file
-    
+
     @property
     def has_cache(self) -> bool:
         """
@@ -110,7 +112,11 @@ class IProcessor:
         return False
 
     def process(
-        self, scores_file: str, ref_file: Optional[str] = None, cands_file: Optional[str] = None, output_file: Optional[str] = None
+        self,
+        scores_file: str,
+        ref_file: Optional[str] = None,
+        cands_file: Optional[str] = None,
+        output_file: Optional[str] = None,
     ) -> MlpDataset:
         """Processes the data.
 

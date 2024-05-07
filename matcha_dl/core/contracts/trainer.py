@@ -140,9 +140,7 @@ class ITrainer:
         return [x.name for x in self.checkpoints_dir.glob("**/*") if x.is_file()]
 
     @abstractmethod
-    def train(
-        self, epochs: Optional[int] = 100, batch_size: Optional[int] = None
-    ) -> None:
+    def train(self, epochs: Optional[int] = 100, batch_size: Optional[int] = None) -> None:
         pass
 
     @abstractmethod
@@ -227,7 +225,7 @@ class ITrainer:
             res = 0
 
         return res
-    
+
     def log(self, msg: str, level: Optional[str] = "info"):
         if self._logger is not None:
             getattr(self._logger, level)(msg)

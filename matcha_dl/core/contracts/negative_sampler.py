@@ -1,8 +1,7 @@
 from abc import abstractmethod
+from typing import List, Optional
 
 import numpy as np
-
-from typing import List, Optional
 
 NEGATIVE_SAMPLER = "sampler"
 

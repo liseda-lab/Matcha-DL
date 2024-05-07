@@ -1,18 +1,23 @@
 import warnings
-from typing import Optional, List
+from typing import List, Optional
 
 import numpy as np
 import torch as th
-from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 
 from matcha_dl.core.contracts.trainer import EntityMapping, ITrainer
 
 
 class MLPTrainer(ITrainer):
 
-    def train(self, epochs: Optional[int] = 50, batch_size: Optional[int] = None, save_interval: Optional[int] = 5):
+    def train(
+        self,
+        epochs: Optional[int] = 50,
+        batch_size: Optional[int] = None,
+        save_interval: Optional[int] = 5,
+    ):
 
         warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -71,7 +76,8 @@ class MLPTrainer(ITrainer):
 
             return [
                 EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["Scores"])
-                for _, dp in df.iterrows() if dp["Scores"] >= threshold
+                for _, dp in df.iterrows()
+                if dp["Scores"] >= threshold
             ]
 
         # if unsupervised use max score from matcha
@@ -81,10 +87,13 @@ class MLPTrainer(ITrainer):
 
             return [
                 EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["matcha"])
-                for _, dp in df.iterrows() if dp["matcha"] >= threshold
+                for _, dp in df.iterrows()
+                if dp["matcha"] >= threshold
             ]
 
-    def _load_data(self, kind: Optional[str] = "train", batch_size: Optional[int] = 1) -> DataLoader:
+    def _load_data(
+        self, kind: Optional[str] = "train", batch_size: Optional[int] = 1
+    ) -> DataLoader:
 
         x = self.dataset.x(kind)
         y = self.dataset.y(kind)

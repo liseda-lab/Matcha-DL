@@ -1,17 +1,16 @@
 import logging
+import time
 from pathlib import Path
 from typing import Optional, Protocol
 
 from deeponto import init_jvm
 
+from matcha_dl.core.entities.configs import ConfigModel
+from matcha_dl.core.values import N_CLASSES
 from matcha_dl.impl.matcha import Matcha
 from matcha_dl.impl.negative_sampler import RandomNegativeSampler
 from matcha_dl.impl.processor import MainProcessor
 from matcha_dl.impl.trainer import MLPTrainer
-from matcha_dl.core.entities.configs import ConfigModel
-from matcha_dl.core.values import N_CLASSES
-import time
-
 
 
 class AlignmentAction(Protocol):
@@ -24,7 +23,7 @@ class AlignmentAction(Protocol):
         reference_file_path: Optional[str] = None,
         candidates_file_path: Optional[str] = None,
     ) -> None:
-        
+
         start_time = time.time()
 
         # Load Configs
@@ -37,7 +36,7 @@ class AlignmentAction(Protocol):
 
         # Loading logging configuration from configs
 
-        logger = logging.getLogger('matcha-dl')
+        logger = logging.getLogger("matcha-dl")
         logger.setLevel(configs.logging_level)
 
         logger.debug(f"Logging level set to {configs.logging_level}")
@@ -56,10 +55,10 @@ class AlignmentAction(Protocol):
         logger.info(f"Matching {source_file_path} and {target_file_path}")
 
         matcha = Matcha(
-            output_file=str(Path(output_dir_path) / 'matcha_scores.csv') , 
-            log_file=str(Path(output_dir_path) / 'matcha.log') ,
+            output_file=str(Path(output_dir_path) / "matcha_scores.csv"),
+            log_file=str(Path(output_dir_path) / "matcha.log"),
             logger=logger,
-            **configs.matcha_params.model_dump()
+            **configs.matcha_params.model_dump(),
         )
 
         logger.info(f"Computing matcha scores...")
@@ -78,10 +77,10 @@ class AlignmentAction(Protocol):
         )
 
         dataset = processor.process(
-            matcha_output_file, 
-            reference_file_path, 
+            matcha_output_file,
+            reference_file_path,
             candidates_file_path,
-            output_file=str(Path(output_dir_path) / 'processed_dataset.csv')
+            output_file=str(Path(output_dir_path) / "processed_dataset.csv"),
         )
 
         logger.info(f"Dataset parsed")
@@ -93,8 +92,8 @@ class AlignmentAction(Protocol):
         if reference_file_path is not None:
 
             model_params = configs.model.params
-            model_params['n'] = dataset.x().shape[1]
-            model_params['n_classes'] = N_CLASSES
+            model_params["n"] = dataset.x().shape[1]
+            model_params["n_classes"] = N_CLASSES
 
         else:
             model_params = configs.model.params

@@ -1,17 +1,23 @@
-
 from pathlib import Path
+from typing import Optional
 
 from matcha_dl.core.actions.alignment import AlignmentAction
 
-from typing import Optional
 
 class AlignmentRunner:
-
     """
     Main class to run the alignment.
     """
 
-    def __init__(self, source_ontology_file: str, target_ontology_file: str, output_dir: str, reference_file: Optional[str] = None, candidates_file: Optional[str] = None, config_file: Optional[str] = None):
+    def __init__(
+        self,
+        source_ontology_file: str,
+        target_ontology_file: str,
+        output_dir: str,
+        reference_file: Optional[str] = None,
+        candidates_file: Optional[str] = None,
+        config_file: Optional[str] = None,
+    ):
         """
 
         Args:

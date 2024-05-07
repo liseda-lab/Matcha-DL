@@ -9,3 +9,11 @@
 # Test Data
 
 /tests/test_data/*
+
+# Ignore dist folder
+
+/dist/*
+
+# Ignore mypy cache
+
+/.mypy_cache/*

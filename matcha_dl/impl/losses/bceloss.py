@@ -1,9 +1,9 @@
-import torch.nn.functional as F
+from typing import List, Union
+
 import torch
+import torch.nn.functional as F
 
 from matcha_dl.core.contracts.loss import ILoss, Tensor
-
-from typing import Union, List
 
 
 class BCELossWeighted(torch.nn.BCELoss, ILoss):
@@ -21,7 +21,7 @@ class BCELossWeighted(torch.nn.BCELoss, ILoss):
         """
         size_average = None
         reduce = None
-        reduction = 'none'
+        reduction = "none"
         weight = torch.tensor(weight).to(device)
 
         self.dev = device
@@ -41,7 +41,7 @@ class BCELossWeighted(torch.nn.BCELoss, ILoss):
         """
 
         weight_ = self.weight[target.data.view(-1).to(self.dev).long()].view_as(target)
-        
+
         loss = F.binary_cross_entropy(input, target, weight=None, reduction=self.reduction)
         loss_class_weighted = loss * weight_
         return loss_class_weighted.mean()

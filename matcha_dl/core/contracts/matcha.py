@@ -1,10 +1,9 @@
+import logging
 import os
-import sys
 import subprocess
+import sys
 from abc import abstractmethod
 from pathlib import Path
-import logging
-
 from typing import Optional, Tuple
 
 MATCHA = "matcha"
@@ -36,7 +35,7 @@ class IMatcha:
         self.log_file = Path(log_file)
         self.max_heap = max_heap
 
-        self.logger = kwargs.get('logger')
+        self.logger = kwargs.get("logger")
 
     @property
     @abstractmethod
@@ -48,7 +47,7 @@ class IMatcha:
             Path: The path to the matcha directory.
         """
         pass
-    
+
     @property
     @abstractmethod
     def jar_path(self) -> Path:
@@ -83,7 +82,10 @@ class IMatcha:
         """
         if self.has_cache:
 
-            self.log(f"Matcha scores already exist at {self.output_file}. Skipping computation.", level="info")
+            self.log(
+                f"Matcha scores already exist at {self.output_file}. Skipping computation.",
+                level="info",
+            )
 
             return str(self.output_file), True
 
@@ -106,12 +108,12 @@ class IMatcha:
                 sys.executable,
             ]
 
-            self.log("Running command:" + ' '.join(jar_command), level="debug")
+            self.log("Running command:" + " ".join(jar_command), level="debug")
 
             try:
-                with open(str(self.log_file), 'w') as f:
+                with open(str(self.log_file), "w") as f:
                     _ = subprocess.run(jar_command, stdout=f, stderr=f, check=True)
-            
+
             except subprocess.CalledProcessError as e:
                 raise RuntimeError(f"Matcha subprocess returned with error code {e.returncode}")
 
@@ -120,7 +122,7 @@ class IMatcha:
             self.log(f"Matcha scores written to {self.output_file}", level="info")
 
             return str(self.output_file), False
-    
+
     def log(self, msg: str, level: Optional[str] = "info") -> None:
         if self.logger:
             getattr(self.logger, level)(msg)
