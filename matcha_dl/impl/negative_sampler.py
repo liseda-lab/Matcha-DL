@@ -1,9 +1,9 @@
-from matcha_dl.core.contracts.negative_sampler import INegativeSampler
+from matcha_dl.core.contracts.negative_sampler import INegativeSampler, List
 
 
 class RandomNegativeSampler(INegativeSampler):
 
-    def sample(self, sources, targets):
+    def sample(self, sources: List, targets: List) -> List[List[str]]:
 
         cands = {
             src: [cand for cand in targets if cand != trg] for src, trg in zip(sources, targets)

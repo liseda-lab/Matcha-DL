@@ -88,73 +88,69 @@ class ITrainer:
         self.alignment_dir.mkdir(parents=True, exist_ok=True)
 
     @property
-    def epoch(self):
+    def epoch(self) -> int:
         return self._epoch
 
     @property
-    def device(self):
+    def device(self) -> th.device:
         return th.device(self._device if th.cuda.is_available() else "cpu")
 
     @property
-    def dataset(self):
+    def dataset(self) -> MlpDataset:
         return self._dataset
 
     @property
-    def name(self):
-        return self._dataset.name
-
-    @property
-    def model(self):
+    def model(self) -> Module:
         return self._model
 
     @property
-    def optimizer(self):
+    def optimizer(self) -> Optimizer:
         return self._optimizer
 
     @property
-    def loss(self):
+    def loss(self) -> ILoss:
         return self._loss
 
     @property
-    def seed(self):
+    def seed(self) -> int:
         return self._seed
 
     @property
-    def earlystoping(self):
+    def earlystoping(self) -> Optional[IStopper]:
         return self._earlystoping
 
     @property
-    def output_dir(self):
+    def output_dir(self) -> Path:
         return self._output_dir
 
     @property
-    def checkpoints_dir(self):
+    def checkpoints_dir(self) -> Path:
         return (self._output_dir / "training_checkpoints").resolve()
 
     @property
-    def logs_dir(self):
+    def logs_dir(self) -> Path:
         return (self._output_dir / "training_logs").resolve()
 
     @property
-    def alignment_dir(self):
+    def alignment_dir(self) -> Path:
         return (self._output_dir / "alignment").resolve()
 
     @property
-    def checkpoints(self):
+    def checkpoints(self) -> List[str]:
         return [x.name for x in self.checkpoints_dir.glob("**/*") if x.is_file()]
 
     @abstractmethod
     def train(
         self, epochs: Optional[int] = 100, batch_size: Optional[int] = None
-    ):
+    ) -> None:
         pass
 
     @abstractmethod
-    def repair(self, **kwargs):
+    def repair(self, **kwargs) -> None:
         pass
 
     @abstractmethod
-    def predict(self, **kwargs):
+    def predict(self, threshold: Optional[float] = 0.7, **kwargs) -> List[EntityMapping]:
         pass
 
     def save_alignment(self, preds: List[EntityMapping]):
@@ -224,7 +220,7 @@ class ITrainer:
             (self.checkpoints_dir / "{}.pt".format(checkpoint)).resolve(),
         )
 
-    def _get_last_checkpoint(self):
+    def _get_last_checkpoint(self) -> int:
         try:
             res = int(sorted(self.checkpoints)[-1].split(".")[0])
         except IndexError:

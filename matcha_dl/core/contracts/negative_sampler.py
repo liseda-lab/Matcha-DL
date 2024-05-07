@@ -2,24 +2,26 @@ from abc import abstractmethod
 
 import numpy as np
 
+from typing import List, Optional
+
 NEGATIVE_SAMPLER = "sampler"
 
 
 class INegativeSampler:
 
-    def __init__(self, n_samples, seed=42):
+    def __init__(self, n_samples: int, seed: Optional[int] = 42):
 
         self._n_samples = n_samples
         self._seed = seed
 
     @property
-    def n_samples(self):
+    def n_samples(self) -> int:
         return self._n_samples
 
     @property
-    def random(self):
+    def random(self) -> np.random.RandomState:
         return np.random.RandomState(self._seed)
 
     @abstractmethod
-    def sample(self, sources, targets):
+    def sample(self, sources: List, targets: List) -> List[List[str]]:
         pass
