@@ -38,12 +38,12 @@ class AlignmentRunner:
     def run_alignment(self) -> None:
 
         AlignmentAction.run(
-            source_file_path=self.source_ontology_file,
-            target_file_path=self.target_ontology_file,
-            output_dir_path=self.output_dir,
-            configs_file_path=self.config_file,
-            reference_file_path=self.reference_file,
-            candidates_file_path=self.candidates_file,
+            source_file_path=str(Path(self.source_ontology_file).resolve()),
+            target_file_path=str(Path(self.target_ontology_file).resolve()),
+            output_dir_path=str(Path(self.output_dir).resolve()),
+            configs_file_path=str(Path(self.config_file).resolve()) if self.config_file else None,
+            reference_file_path=str(Path(self.reference_file).resolve()) if self.reference_file else None,
+            candidates_file_path=str(Path(self.candidates_file).resolve()) if self.candidates_file else None,
         )
 
     def validate_files(self) -> None:

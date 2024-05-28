@@ -6,12 +6,12 @@ from matcha_dl.core.actions.alignment import AlignmentAction
 
 def run_alignment(args):
     AlignmentAction.run(
-        source_file_path=args.source_ontology_file,
-        target_file_path=args.target_ontology_file,
-        output_dir_path=args.output_dir,
-        configs_file_path=args.config_file,
-        reference_file_path=args.reference_file,
-        candidates_file_path=args.candidates_file,
+        source_file_path=str(Path(args.source_ontology_file).resolve()),
+        target_file_path=str(Path(args.target_ontology_file).resolve()),
+        output_dir_path=str(Path(args.output_dir).resolve()),
+        configs_file_path=str(Path(args.config_file).resolve()) if args.config_file else None,
+        reference_file_path=str(Path(args.reference_file).resolve()) if args.reference_file else None,
+        candidates_file_path=str(Path(args.candidates_file).resolve()) if args.candidates_file else None,
     )
 
 
