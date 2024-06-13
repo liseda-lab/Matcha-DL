@@ -4,22 +4,32 @@ class BioMLDataset:
   def __init__(self, main_dir: str):
 
     self._main_dir = Path(main_dir)
-    self._refs_dir = _main_dir / 'refs_equiv'
-    self._task = _main_dir.name
-    
-    if "." in x:
-      tnames, extra = x.split(".")
-      n1_base, n2_base = tnames.split("-")
-      self._source = n1_base+"."+extra+".owl"
-      self._target = n2_base+"."+extra+".owl"
-    else:
-      n1_base, n2_base = x.split("-")
-      self._source = n1_base+".owl"
-      self._target = n2_base+".owl"
+    print("Main:", self._main_dir)
+    self._refs_dir = self._main_dir / 'refs_equiv'
+    self._task = self._main_dir.name
 
-    self._reference = self.refs_dir / 'train.tsv'
-    self._candidates = self.refs_dir / 'test.cands.tsv'
-    self._full_reference = self.refs_dir / 'full.tsv'
+    if "." in self._task:
+
+      tnames, extra = self._task.split(".")
+      n1_base, n2_base = tnames.split("-")
+      print("n1", n1_base)
+      print("n2", n2_base)
+      self._source = self._main_dir / Path(n1_base+"."+extra+".owl")
+      self._target = self._main_dir / Path(n2_base+"."+extra+".owl")
+    else:
+
+      n1_base, n2_base = self._task.split("-")
+      print("n1", n1_base)
+      print("n2", n2_base)
+      self._source = self._main_dir /  Path(n1_base+".owl")
+      self._target = self._main_dir /  Path(n2_base+".owl")
+    self._source = Path(self._source).resolve()
+    self._target = Path(self._target).resolve()
+    print("Source:", self._source)
+    print("Target:", self._target)
+    self._reference = (self._refs_dir / 'train.tsv').resolve()
+    self._candidates = (self._refs_dir / 'test.cands.tsv').resolve()
+    self._full_reference = (self._refs_dir / 'full.tsv').resolve()
     
 @property
 def task(self):
@@ -35,7 +45,7 @@ def target(self):
   
 @property
 def reference(self):
-  return self.reference
+  return self._reference
   
 @property
 def candidates(self):
