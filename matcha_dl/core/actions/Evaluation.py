@@ -9,6 +9,9 @@ import urllib
 import zipfile
 import os
 import shutil
+import traceback
+from datetime import datetime
+
 def copy_and_rename_file(src_file_path: str, dest_dir: str, new_file_name: str) -> None:
     src_path = Path(src_file_path)
     dest_dir_path = Path(dest_dir)
@@ -66,135 +69,144 @@ class BioMLEvaluationAction(Protocol):
         translation = {"sup": semi_sup_path, "unsup": unsup_path}
         
         for task in tasknames:
-            example_ds = BioMLDataset((root_downloaded_folder / task).resolve())
+            if not task.startswith("."):
+                try:
+                    example_ds = BioMLDataset((root_downloaded_folder / task).resolve())
 
-            ignored_index = get_ignored_class_index(Ontology(example_ds._source))
-            ignored_index.update(get_ignored_class_index(Ontology(example_ds._target)))
+                    ignored_index = get_ignored_class_index(Ontology(example_ds._source))
+                    ignored_index.update(get_ignored_class_index(Ontology(example_ds._target)))
 
-            print("Matching", example_ds._source, "and", example_ds._target)
-            
-            for case in supervision_cases: 
-                if not Path(output_dir).exists():
-                    os.mkdir(Path(output_dir).resolve())
-                task_result_dir = Path(output_dir) / Path("alignment_results")
-                if not task_result_dir.exists():
-                    os.mkdir(task_result_dir.resolve())
-                task_result_dir = task_result_dir / task
-                if not task_result_dir.exists():
-                    os.mkdir(task_result_dir.resolve())
-                task_result_dir = task_result_dir / Path(case)
-
-                if not task_result_dir.exists():
-                    os.mkdir(task_result_dir.resolve())
+                    print("Matching", example_ds._source, "and", example_ds._target)
                     
-                global_dir = task_result_dir / Path("global")
-                if not global_dir.exists():
-                    os.mkdir(global_dir.resolve())
-                local_dir = task_result_dir / Path("local")
-                if not local_dir.exists():
-                    os.mkdir(local_dir.resolve())
+                    for case in supervision_cases: 
+                        if not Path(output_dir).exists():
+                            os.mkdir(Path(output_dir).resolve())
+                        task_result_dir = Path(output_dir) / Path("alignment_results")
+                        if not task_result_dir.exists():
+                            os.mkdir(task_result_dir.resolve())
+                        task_result_dir = task_result_dir / task
+                        if not task_result_dir.exists():
+                            os.mkdir(task_result_dir.resolve())
+                        task_result_dir = task_result_dir / Path(case)
+
+                        if not task_result_dir.exists():
+                            os.mkdir(task_result_dir.resolve())
+                            
+                        global_dir = task_result_dir / Path("global")
+                        if not global_dir.exists():
+                            os.mkdir(global_dir.resolve())
+                        local_dir = task_result_dir / Path("local")
+                        if not local_dir.exists():
+                            os.mkdir(local_dir.resolve())
+                        
+                        if case == "sup":
+                            # Give reference file
+                            # Local
+                            if "local" in hierarchical:
+                                runner = AlignmentRunner(
+                                    source_ontology_file=example_ds._source,
+                                    target_ontology_file=example_ds._target,
+                                    output_dir=local_dir,
+                                    reference_file=example_ds._reference,
+                                    candidates_file=example_ds._candidates,
+                                    config_file=q / hierarchical["local"][case]
+                                )
+                                runner.run()
+                            if "global" in hierarchical:
+                                # Global
+                                runner = AlignmentRunner(
+                                    source_ontology_file=example_ds._source,
+                                    target_ontology_file=example_ds._target,
+                                    output_dir=global_dir,
+                                    reference_file=example_ds._reference,
+                                    config_file=q / hierarchical["global"][case]
+                                )
+                                runner.run()
+                        elif case == "unsup":
+                            # No reference file
+                            # Local
+                            if "local" in hierarchical:
+                                runner = AlignmentRunner(
+                                    source_ontology_file=example_ds._source,
+                                    target_ontology_file=example_ds._target,
+                                    output_dir=local_dir,
+                                    candidates_file=example_ds._candidates,
+                                    config_file=q / hierarchical["local"][case]
+                                )
+                                runner.run()
+                            if "global" in hierarchical:
+                                # Global
+                                runner = AlignmentRunner(
+                                    source_ontology_file=example_ds._source,
+                                    target_ontology_file=example_ds._target,
+                                    output_dir=global_dir,
+                                    config_file=q / hierarchical["global"][case]
+                                )
+                                runner.run()
+                            
+                    # Do evaluation
+                    results = BioMLResults(output_dir / Path("alignment_results") / task)
+                    
+                    if "global" in hierarchical:
+                        if "unsup" in hierarchical["global"]:
+                            unsupervised_global_alignment = str(results.unsup.global_scope.alignment)
+                            unsupervised_match_results = matching_eval(unsupervised_global_alignment, str(example_ds._full_reference.resolve()), None, ignored_index, 0.0)
+                        else:
+                            unsupervised_match_results = "N/A"
+                        if "sup" in hierarchical["global"]:
+                            semisupervised_global_alignment = str(results.sup.global_scope.alignment)
+                            semisupervised_match_results = matching_eval(semisupervised_global_alignment, str(example_ds._full_reference.resolve()), str(example_ds._reference.resolve()), ignored_index, 0.0)
+                        else:
+                            semisupervised_match_results = "N/A"
+                    else:
+                        unsupervised_match_results = "N/A"
+                        semisupervised_match_results = "N/A"
+                    # Local matching evaluation
+                    if "local" in hierarchical:
+                        if "unsup" in hierarchical["global"]:
+                            unsupervised_local_alignment = str(results.unsup.local_scope.alignment)
+                            unsupervised_rank_results = ranking_eval(unsupervised_local_alignment, Ks=[1, 5, 10])
+                        else:
+                            unsupervised_rank_results = "N/A"
+                        if "sup" in hierarchical["local"]:    
+                            semisupervised_local_alignment = str(results.sup.local_scope.alignment)
+                            semisupervised_rank_results = ranking_eval(semisupervised_local_alignment, Ks=[1, 5, 10])
+                        else:
+                            semisupervised_rank_results = "N/A"
+                    else:
+                        unsupervised_rank_results = "N/A"
+                        semisupervised_rank_results = "N/A"
+                    
+                    
+                    # alignments  = {"sup": [semisupervised_local_alignment, semisupervised_global_alignment], "unsup": [unsupervised_local_alignment, unsupervised_global_alignment]}
+                    # # Write alignment in submission folder
+                    # for case in supervision_cases:
+                    #   target_folder = translation[case]
+                    #   local_alignment, global_alignment = alignments[case]
+                    #   converted_task = task.replace("-", "2")
+                    #   submission_task_folder = target_folder / Path(converted_task)
+                    #   if not submission_task_folder.exists():
+                    #     os.mkdir(submission_task_folder)
+                    
+                    #   copy_and_rename_file(global_alignment, submission_task_folder, "match.result.tsv")
+                    #   copy_and_rename_file(local_alignment, submission_task_folder, "rank.result.tsv")
                 
-                if case == "sup":
-                  # Give reference file
-                  # Local
-                  if "local" in hierarchical:
-                    runner = AlignmentRunner(
-                        source_ontology_file=example_ds._source,
-                        target_ontology_file=example_ds._target,
-                        output_dir=local_dir,
-                        reference_file=example_ds._reference,
-                        candidates_file=example_ds._candidates,
-                        config_file=q / hierarchical["local"][case]
-                    )
-                    runner.run()
-                  if "global" in hierarchical:
-                    # Global
-                    runner = AlignmentRunner(
-                        source_ontology_file=example_ds._source,
-                        target_ontology_file=example_ds._target,
-                        output_dir=global_dir,
-                        reference_file=example_ds._reference,
-                        config_file=q / hierarchical["global"][case]
-                    )
-                    runner.run()
-                elif case == "unsup":
-                  # No reference file
-                  # Local
-                  if "local" in hierarchical:
-                    runner = AlignmentRunner(
-                        source_ontology_file=example_ds._source,
-                        target_ontology_file=example_ds._target,
-                        output_dir=local_dir,
-                        candidates_file=example_ds._candidates,
-                        config_file=q / hierarchical["local"][case]
-                    )
-                    runner.run()
-                  if "global" in hierarchical:
-                    # Global
-                    runner = AlignmentRunner(
-                        source_ontology_file=example_ds._source,
-                        target_ontology_file=example_ds._target,
-                        output_dir=global_dir,
-                        config_file=q / hierarchical["global"][case]
-                    )
-                    runner.run()
-                    
-            # Do evaluation
-            results = BioMLResults(output_dir / Path("alignment_results") / task)
-            
-            if "global" in supervision_cases:
-                if "unsup" in hierarchical["global"]:
-                    unsupervised_global_alignment = str(results.unsup.global_scope.alignment)
-                    unsupervised_match_results = matching_eval(unsupervised_global_alignment, str(example_ds._full_reference.resolve()), None, ignored_index, 0.0)
-                else:
-                    unsupervised_match_results = "N/A"
-                if "sup" in hierarchical["global"]:
-                    semisupervised_global_alignment = str(results.sup.global_scope.alignment)
-                    semisupervised_match_results = matching_eval(semisupervised_global_alignment, str(example_ds._full_reference.resolve()), str(example_ds._reference.resolve()), ignored_index, 0.0)
-                else:
-                    semisupervised_match_results = "N/A"
-            else:
-                unsupervised_match_results = "N/A"
-                semisupervised_match_results = "N/A"
-            # Local matching evaluation
-            if "local" in supervision_cases:
-                if "unsup" in hierarchical["global"]:
-                    unsupervised_local_alignment = str(results.unsup.local_scope.alignment)
-                    unsupervised_rank_results = ranking_eval(unsupervised_local_alignment, Ks=[1, 5, 10])
-                else:
-                    unsupervised_rank_results = "N/A"
-                if "sup" in hierarchical["local"]:    
-                    semisupervised_local_alignment = str(results.sup.local_scope.alignment)
-                    semisupervised_rank_results = ranking_eval(semisupervised_local_alignment, Ks=[1, 5, 10])
-                else:
-                    semisupervised_rank_results = "N/A"
-            else:
-                unsupervised_rank_results = "N/A"
-                semisupervised_rank_results = "N/A"
-            
-            
-            # alignments  = {"sup": [semisupervised_local_alignment, semisupervised_global_alignment], "unsup": [unsupervised_local_alignment, unsupervised_global_alignment]}
-            # # Write alignment in submission folder
-            # for case in supervision_cases:
-            #   target_folder = translation[case]
-            #   local_alignment, global_alignment = alignments[case]
-            #   converted_task = task.replace("-", "2")
-            #   submission_task_folder = target_folder / Path(converted_task)
-            #   if not submission_task_folder.exists():
-            #     os.mkdir(submission_task_folder)
-              
-            #   copy_and_rename_file(global_alignment, submission_task_folder, "match.result.tsv")
-            #   copy_and_rename_file(local_alignment, submission_task_folder, "rank.result.tsv")
-        
-            # Add task name and evaluation results to results.txt
-            with open(Path(output_dir) / "results.txt", "a") as results_file:
-                results_file.write(f"Task: {task}\n")
-                results_file.write(f"Unsupervised Global Matching Results: {unsupervised_match_results}\n")
-                results_file.write(f"Semi-supervised Global Matching Results: {semisupervised_match_results}\n")
-                results_file.write(f"Unsupervised Local Ranking Results: {unsupervised_rank_results}\n")
-                results_file.write(f"Semi-supervised Local Ranking Results: {semisupervised_rank_results}\n\n")
-              
+                    # Add task name and evaluation results to results.txt
+                    with open(Path(output_dir) / "results.txt", "a") as results_file:
+                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        results_file.write(f"Task: {task} {current_time}\n")
+                        results_file.write(f"Unsupervised Global Matching Results: {unsupervised_match_results}\n")
+                        results_file.write(f"Semi-supervised Global Matching Results: {semisupervised_match_results}\n")
+                        results_file.write(f"Unsupervised Local Ranking Results: {unsupervised_rank_results}\n")
+                        results_file.write(f"Semi-supervised Local Ranking Results: {semisupervised_rank_results}\n\n")
 
+                except Exception as e:
+                    error_message = f"Error processing task {task}: {str(e)}"
+                    with open(Path(output_dir) / "error_log.txt", "a") as error_log_file:
+                        error_log_file.write(error_message + "\n")
+                        # Write the full stack trace to the log file
+                        traceback.print_exc(file=error_log_file)
+                    print(error_message)  # Optionally print to console for immediate feedback
         # Delete ds_download_folder
-        os.remove(ds_download_folder)
+        os.rmdir(ds_download_folder)
               
