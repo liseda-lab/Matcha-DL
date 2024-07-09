@@ -5,6 +5,7 @@ from matcha_dl.core.actions.Evaluation import BioMLEvaluationAction
 import os
 import pandas as pd
 import re
+from concurrent.futures import ProcessPoolExecutor
 
 def generate_config_file(
                          base_dir,
@@ -188,78 +189,29 @@ def write_results_xls(base_dir, config_filenames):
         global_results.to_excel(writer, sheet_name='Global Results', index=False, columns=global_columns)
         local_results.to_excel(writer, sheet_name='Local Results', index=False, columns=local_columns)
 
-# Define the parameter grids
-PARAM_GRID_local = {
-    "nr_negatives": [1],
-    "DL_threshold": [0.7],
-    "matcha_cardinality": [50],
-    "matcha_threshold": [0.1],
-    "nr_epochs": [5, 10],
-    "batch_size": [1],
-    "model_params": [{"layers": [128, 256]}, {"layers": [64, 128]}],
-    "loss_type": ["BCELossWeighted"],
-    "loss_params": [{"weight": [0.01, 0.99]}, {"weight": [0.02, 0.98]}],
-    "optimizer": ["Adam", "SGD"],
-    "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
-}
-
-PARAM_GRID_global_inst_1 = {
-    "nr_negatives": [1],
-    "DL_threshold": [0.5, 0.7, 0.9],
-    "matcha_cardinality": [5, 10, 30, 50],
-    "matcha_threshold": [0.1, 0.3],
-    "nr_epochs": [5, 10, 20],
-    "batch_size": [1, 10],
-    "model_params": [{"layers": [128, 256]}, {"layers": [64, 128]}],
-    "loss_type": ["BCELossWeighted"],
-    "loss_params": [{"weight": [0.5, 0.5]}],
-    "optimizer": ["Adam", "SGD"],
-    "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
-}
-
-PARAM_GRID_global_inst_2 = {
-    "nr_negatives": [99],
-    "DL_threshold": [0.5, 0.7, 0.9],
-    "matcha_cardinality": [5, 10, 30, 50],
-    "matcha_threshold": [0.1, 0.3],
-    "nr_epochs": [5, 10, 20],
-    "batch_size": [1, 10],
-    "model_params": [{"layers": [128, 256]}, {"layers": [64, 128]}],
-    "loss_type": ["BCELossWeighted"],
-    "loss_params": [{"weight": [0.01, 0.99]}],
-    "optimizer": ["Adam", "SGD"],
-    "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
-}
-
-SPECIFIC_PARAM_GRID_GLOBAL = {
-    "nr_negatives": [1],
-    "DL_threshold": [0.7],
-    "matcha_cardinality": [10, 20],
-    "matcha_threshold": [0.1],
-    "nr_epochs": [20],
-    "batch_size": [1, 64],
-    "model_params": [{"layers": [128, 256, 128]}],
-    "loss_type": ["BCELossWeighted"],
-    "loss_params": [{"weight": [0.5, 0.5]}],
-    "optimizer": ["Adam"],
-    "optimizer_params": [{"lr": 0.001}]
-}
-
-
-CONFIG_FILENAME = "config.yaml"
-SCOPE = "global"
-PARAM_GRID = PARAM_GRID_global_inst_1
-
-# Generate all combinations of parameters
-keys, values = zip(*PARAM_GRID.items())
-combinations = [dict(zip(keys, v)) for v in itertools.product(*values)]
-
-base_dir = "specific_experiment_09_07"
-
-Path(base_dir).mkdir(parents=True, exist_ok=True)
-
-for combo in combinations:
+# for combo in combinations:
   
+#     # Creates a directory for that combo
+#     combo_dir = generate_combo_dir(base_dir, combo)
+
+#     # Generates a config file in that directory for that combo
+#     generate_config_file(base_dir, combo_dir, CONFIG_FILENAME, combo)
+
+#     # Pass config_filenames (used to only generate either only local or global alignments)
+#     if SCOPE == "local":
+#       config_filenames = {"local": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
+#     elif SCOPE == "global":
+#       config_filenames = {"global": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
+#     elif SCOPE == "both":
+#       config_filenames = {"global": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}, "local": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
+
+#     combo_dir = Path(base_dir) / Path(combo_dir)
+    
+#     # Runs alignment and evaluation using that configuration
+#     BioMLEvaluationAction.run("https://zenodo.org/records/8193375/files/bio-ml.zip?download=1" , combo_dir, config_filenames)
+
+def process_combo(combo):
+
     # Creates a directory for that combo
     combo_dir = generate_combo_dir(base_dir, combo)
 
@@ -268,16 +220,101 @@ for combo in combinations:
 
     # Pass config_filenames (used to only generate either only local or global alignments)
     if SCOPE == "local":
-      config_filenames = {"local": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
+        config_filenames = {"local": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
     elif SCOPE == "global":
-      config_filenames = {"global": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
+        config_filenames = {"global": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
     elif SCOPE == "both":
-      config_filenames = {"global": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}, "local": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
+        config_filenames = {"global": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}, "local": {"sup": CONFIG_FILENAME, "unsup": CONFIG_FILENAME}}
 
     combo_dir = Path(base_dir) / Path(combo_dir)
     
     # Runs alignment and evaluation using that configuration
-    BioMLEvaluationAction.run("https://zenodo.org/records/8193375/files/bio-ml.zip?download=1" , combo_dir, config_filenames)
+    BioMLEvaluationAction.run("https://zenodo.org/records/8193375/files/bio-ml.zip?download=1", combo_dir, config_filenames)
     
-write_results_xls(base_dir, config_filenames)
+    # Return any necessary data, for example, config_filenames for further processing
+    return config_filenames
 
+# Assuming `combinations` is defined and accessible
+if __name__ == "__main__":
+
+    # Define the parameter grids
+
+    PARAM_GRID_local = {
+        "nr_negatives": [1],
+        "DL_threshold": [0.7],
+        "matcha_cardinality": [50],
+        "matcha_threshold": [0.1],
+        "nr_epochs": [5, 10],
+        "batch_size": [1],
+        "model_params": [{"layers": [128, 256]}, {"layers": [64, 128]}],
+        "loss_type": ["BCELossWeighted"],
+        "loss_params": [{"weight": [0.01, 0.99]}, {"weight": [0.02, 0.98]}],
+        "optimizer": ["Adam", "SGD"],
+        "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
+    }
+
+    PARAM_GRID_global_inst_1 = {
+        "nr_negatives": [1],
+        "DL_threshold": [0.5, 0.7, 0.9],
+        "matcha_cardinality": [5, 10, 30, 50],
+        "matcha_threshold": [0.1, 0.3],
+        "nr_epochs": [5, 10, 20],
+        "batch_size": [1, 10],
+        "model_params": [{"layers": [128, 256]}, {"layers": [64, 128]}],
+        "loss_type": ["BCELossWeighted"],
+        "loss_params": [{"weight": [0.5, 0.5]}],
+        "optimizer": ["Adam", "SGD"],
+        "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
+    }
+
+    PARAM_GRID_global_inst_2 = {
+        "nr_negatives": [99],
+        "DL_threshold": [0.5, 0.7, 0.9],
+        "matcha_cardinality": [5, 10, 30, 50],
+        "matcha_threshold": [0.1, 0.3],
+        "nr_epochs": [5, 10, 20],
+        "batch_size": [1, 10],
+        "model_params": [{"layers": [128, 256]}, {"layers": [64, 128]}],
+        "loss_type": ["BCELossWeighted"],
+        "loss_params": [{"weight": [0.01, 0.99]}],
+        "optimizer": ["Adam", "SGD"],
+        "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
+    }
+
+    SPECIFIC_PARAM_GRID_GLOBAL = {
+        "nr_negatives": [1],
+        "DL_threshold": [0.7],
+        "matcha_cardinality": [10, 20],
+        "matcha_threshold": [0.1],
+        "nr_epochs": [20],
+        "batch_size": [1, 64],
+        "model_params": [{"layers": [128, 256, 128]}],
+        "loss_type": ["BCELossWeighted"],
+        "loss_params": [{"weight": [0.5, 0.5]}],
+        "optimizer": ["Adam"],
+        "optimizer_params": [{"lr": 0.001}]
+    }
+
+
+    CONFIG_FILENAME = "config.yaml"
+    SCOPE = "global"
+    PARAM_GRID = PARAM_GRID_global_inst_1
+
+    # Generate all combinations of parameters
+    keys, values = zip(*PARAM_GRID.items())
+    combinations = [dict(zip(keys, v)) for v in itertools.product(*values)]
+
+    base_dir = "specific_experiment_09_07"
+
+    Path(base_dir).mkdir(parents=True, exist_ok=True)
+
+    # Necessary to guard the entry point of the multiprocessing application to avoid recursive spawning of subprocesses on Windows
+    with ProcessPoolExecutor() as executor:
+        # Map each combo to the process_combo function and execute in parallel
+        config_filenames = list(executor.map(process_combo, combinations, SCOPE, CONFIG_FILENAME, base_dir))
+    
+    # Process results, e.g., aggregate and write to an Excel file
+    # This step depends on how you need to use the results returned by process_combo
+    # Example: write_results_xls(base_dir, aggregate_results(results))
+
+    write_results_xls(base_dir, config_filenames)
