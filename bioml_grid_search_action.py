@@ -203,30 +203,59 @@ PARAM_GRID_local = {
     "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
 }
 
-PARAM_GRID_global = {
+PARAM_GRID_global_inst_1 = {
     "nr_negatives": [1],
-    "DL_threshold": [0.7],
-    "matcha_cardinality": [50],
-    "matcha_threshold": [0.1],
-    "nr_epochs": [5, 10],
-    "batch_size": [1],
+    "DL_threshold": [0.5, 0.7, 0.9],
+    "matcha_cardinality": [5, 10, 30, 50],
+    "matcha_threshold": [0.1, 0.3],
+    "nr_epochs": [5, 10, 20],
+    "batch_size": [1, 10],
     "model_params": [{"layers": [128, 256]}, {"layers": [64, 128]}],
     "loss_type": ["BCELossWeighted"],
-    "loss_params": [{"weight": [0.01, 0.99]}, {"weight": [0.02, 0.98]}],
+    "loss_params": [{"weight": [0.5, 0.5]}],
     "optimizer": ["Adam", "SGD"],
     "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
 }
 
+PARAM_GRID_global_inst_2 = {
+    "nr_negatives": [99],
+    "DL_threshold": [0.5, 0.7, 0.9],
+    "matcha_cardinality": [5, 10, 30, 50],
+    "matcha_threshold": [0.1, 0.3],
+    "nr_epochs": [5, 10, 20],
+    "batch_size": [1, 10],
+    "model_params": [{"layers": [128, 256]}, {"layers": [64, 128]}],
+    "loss_type": ["BCELossWeighted"],
+    "loss_params": [{"weight": [0.01, 0.99]}],
+    "optimizer": ["Adam", "SGD"],
+    "optimizer_params": [{"lr": 0.001}, {"lr": 0.01}]
+}
+
+SPECIFIC_PARAM_GRID_GLOBAL = {
+    "nr_negatives": [1],
+    "DL_threshold": [0.7],
+    "matcha_cardinality": [10, 20],
+    "matcha_threshold": [0.1],
+    "nr_epochs": [20],
+    "batch_size": [1, 64],
+    "model_params": [{"layers": [128, 256, 128]}],
+    "loss_type": ["BCELossWeighted"],
+    "loss_params": [{"weight": [0.5, 0.5]}],
+    "optimizer": ["Adam"],
+    "optimizer_params": [{"lr": 0.001}]
+}
+
+
 CONFIG_FILENAME = "config.yaml"
 SCOPE = "global"
-PARAM_GRID = PARAM_GRID_local
+PARAM_GRID = PARAM_GRID_global_inst_1
 
 # Generate all combinations of parameters
 keys, values = zip(*PARAM_GRID.items())
 combinations = [dict(zip(keys, v)) for v in itertools.product(*values)]
 
-# Generate config files for all combinations
-base_dir = "test_generate_config"
+base_dir = "specific_experiment_09_07"
+
 Path(base_dir).mkdir(parents=True, exist_ok=True)
 
 for combo in combinations:
