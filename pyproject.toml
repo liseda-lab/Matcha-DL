@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "matcha-dl"
-version = "0.1.1"
+version = "2.0.0"
 description = "Matcha-DL is a tool for supervised ontology alignment. It takes as input two ontologies and a set of mappings between them, and learns a model that can predict mappings between the two ontologies."
 authors = ["Pedro Cotovio <pgcotovio@gmail.com>"]
 readme = "README.md"
@@ -19,8 +19,10 @@ tensorboard = "^2.16.2"
 dill = "^0.3.8"
 lxml = "^5.2.1"
 pandas = "^2.2.2"
-pyyaml = "^6.0.1"
 sentence-transformers = "^2.7.0"
+dependency-injector-fork = "^4.42.1"
+mowl-borg = "^0.3.0"
+dgl = {url = "https://data.dgl.ai/wheels/torch-2.3/cu118/dgl-2.3.0%2Bcu118-cp310-cp310-manylinux1_x86_64.whl"}
 
 [tool.poetry.scripts]
 matchadl = "matcha_dl.delivery.cli:main"
