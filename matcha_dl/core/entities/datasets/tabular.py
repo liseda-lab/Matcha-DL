@@ -80,6 +80,10 @@ class TabularDataset(Dataset):
             self.load()
             return
         
+        inference_set = pd.DataFrame(
+            self._get_cands(inference_sources), columns=["SrcEntity", "TgtEntity", "Score"]
+        )
+        
         if self.reference is not None:
 
             # get training set
@@ -107,21 +111,31 @@ class TabularDataset(Dataset):
 
             training_set = training_set.sample(frac=1).reset_index(drop=True)
 
+        
+
+
+    def _get_cands(self) -> pd.DataFrame:
+
+        return pd.DataFrame([
+                [source, cand[0], 0, cand[1:]]
+                for source, _, target_cands in self.candidates.values
+                for cand in literal_eval(target_cands)
+            ], columns=["Src", "Tgt", "Score", "Features"])
+
             
 
     def _get_matcha_features(self, dataset: pd.DataFrame) -> pd.DataFrame:
 
         feats = []
-        flag = 0
-
+        
         for _, row in dataset.iterrows():
 
             try:
-                scores = self.scores.get(row["Src"]).get(row["Tgt"])
+                vector = self.matcha_features.get(row["Src"]).get(row["Tgt"])
             except AttributeError:
                 raise ValueError("Scores for source {} and target {} not found.".format(row["Src"], row["Tgt"]))
             
-            feats.append(scores)
+            feats.append(vector)
             
 
         dataset["Features"] = feats
