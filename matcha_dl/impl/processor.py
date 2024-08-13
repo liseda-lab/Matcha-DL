@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 import pandas as pd
 
 from matcha_dl.core.contracts.processor import IProcessor
-from matcha_dl.core.entities.dataset import MlpDataset
+from matcha_dl.core.entities.datasets.base import MlpDataset
 
 
 class MainProcessor(IProcessor):

@@ -72,7 +72,6 @@ class Dataset(ABC):
     @property
     def output_path(self) -> Path:
         return self._output_path
-
     
     def load_ontologies(self, source_path: Path, target_path: Path) -> None:
         

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from matcha_dl.core.contracts.negative_sampler import INegativeSampler
-from matcha_dl.core.entities.dataset import MlpDataset
+from matcha_dl.core.entities.datasets.base import MlpDataset
 from matcha_dl.impl.dp.utils import read_table
 
 PROCESSOR = "processor"
