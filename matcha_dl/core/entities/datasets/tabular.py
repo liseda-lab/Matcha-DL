@@ -80,9 +80,20 @@ class TabularDataset(Dataset):
             self.load()
             return
         
-        inference_set = pd.DataFrame(
-            self._get_cands(inference_sources), columns=["SrcEntity", "TgtEntity", "Score"]
-        )
+        # Inference set
+
+        self.log("Creating Inference set", level="debug")
+
+        inference_set = self._get_cands()
+
+        # get features from matcha
+
+        self.log("#Getting Matcha Features...", level="debug")
+        inference_set = self._get_matcha_features(inference_set)
+
+        # assign training label
+        inference_set["train"] = False
+        inference_set["inference"] = True
         
         if self.reference is not None:
 
@@ -99,9 +110,9 @@ class TabularDataset(Dataset):
             # combine positive and negative samples
             training_set = pd.concat([positive_set, negative_set], ignore_index=True)
 
-            # get scores features from matcha
-            self.log("#Getting Scores...", level="debug")
-            training_set = self._get_scores(training_set)
+            # get features from matcha
+            self.log("#Getting Matcha Features...", level="debug")
+            training_set = self._get_matcha_features(training_set)
 
             # assign training label
             training_set["train"] = True
@@ -111,16 +122,29 @@ class TabularDataset(Dataset):
 
             training_set = training_set.sample(frac=1).reset_index(drop=True)
 
-        
+            self.log("#Combining Training and Inference Sets...", level="debug")
 
+            dataset = pd.concat([training_set, inference_set], ignore_index=True)
+
+        else:
+
+            dataset = inference_set
+
+        dataset.rename(columns={"Score": "Labels"}, inplace=True)
+
+        self.log("#Processing Done", level="debug")
+
+        self._df = dataset
+
+        return
 
     def _get_cands(self) -> pd.DataFrame:
 
         return pd.DataFrame([
-                [source, cand[0], 0, cand[1:]]
+                [source, cand[0], None]
                 for source, _, target_cands in self.candidates.values
                 for cand in literal_eval(target_cands)
-            ], columns=["Src", "Tgt", "Score", "Features"])
+            ], columns=["Src", "Tgt", "Score"])
 
             
 
