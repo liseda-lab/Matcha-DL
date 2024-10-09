@@ -10,13 +10,13 @@ DataFrame = pd.DataFrame
 
 from .base import Dataset
 
-from typing import Tuple
+from typing import Tuple, List
 
 
 class TabularDataset(Dataset):
 
-    def __init__(self, output_path: Path) -> None:
-        super().__init__(output_path)
+    def __init__(self, output_path: Path, matchers: List[str], **kwargs) -> None:
+        super().__init__(output_path, matchers, **kwargs)
 
         self._df = None
         self._df_save_path = self.output_path / "dataset.csv"
@@ -67,18 +67,18 @@ class TabularDataset(Dataset):
     def load(self):
         self._df = pd.read_csv(self._df_save_path, converters={"Features": literal_eval})
 
-        self.log("#Loaded Cached Dataset...", level="debug")
+        self.log("#Loaded Cached Dataset...", level="info")
 
     def has_cache(self) -> bool:
         if self._cache_ok:
             return self._df_save_path.exists()
         return False
 
-    def process(self) -> None:
+    def process(self) -> "TabularDataset":
 
         if self.has_cache():
             self.load()
-            return
+            return self
         
         # Inference set
 
@@ -136,7 +136,7 @@ class TabularDataset(Dataset):
 
         self._df = dataset
 
-        return
+        return self
 
     def _get_cands(self) -> pd.DataFrame:
 
