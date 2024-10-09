@@ -54,7 +54,7 @@ class AlignmentAction(Protocol):
         logger.info(f"Matching {source_file_path} and {target_file_path}")
 
         matcha = Matcha(
-            output_path=Path(output_dir_path) / "matcha",
+            output_path=output_dir_path / "matcha",
             logger=logger,
             **configs.matcha_params.model_dump(),
         )
@@ -118,7 +118,7 @@ class AlignmentAction(Protocol):
             model_params=model_params,
             earlystoping=None,
             device=configs.device,
-            output_dir=Path(output_dir_path),
+            output_dir= output_dir_path / "model",
             seed=configs.seed,
             use_last_checkpoint=configs.use_last_checkpoint,
             logger=logger,
