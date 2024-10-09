@@ -8,20 +8,19 @@ from deeponto import init_jvm
 from matcha_dl.core.entities.configs import ConfigModel
 from matcha_dl.core.values import N_CLASSES
 from matcha_dl.impl.matcha import Matcha
-from matcha_dl.impl.negative_sampler import RandomNegativeSampler
-from matcha_dl.impl.processor import MainProcessor
+from matcha_dl.core.entities.datasets import TabularDataset
 from matcha_dl.impl.trainer import MLPTrainer
 
 
 class AlignmentAction(Protocol):
     @staticmethod
     def run(
-        source_file_path: str,
-        target_file_path: str,
-        output_dir_path: str,
-        configs_file_path: Optional[str] = None,
-        reference_file_path: Optional[str] = None,
-        candidates_file_path: Optional[str] = None,
+        source_file_path: Path,
+        target_file_path: Path,
+        output_dir_path: Path,
+        configs_file_path: Optional[Path] = None,
+        reference_file_path: Optional[Path] = None,
+        candidates_file_path: Optional[Path] = None,
     ) -> None:
 
         start_time = time.time()
@@ -55,8 +54,7 @@ class AlignmentAction(Protocol):
         logger.info(f"Matching {source_file_path} and {target_file_path}")
 
         matcha = Matcha(
-            output_file=str(Path(output_dir_path) / "matcha_scores.csv"),
-            log_file=str(Path(output_dir_path) / "matcha.log"),
+            output_path=Path(output_dir_path) / "matcha",
             logger=logger,
             **configs.matcha_params.model_dump(),
         )
@@ -64,24 +62,34 @@ class AlignmentAction(Protocol):
         logger.info(f"Computing matcha scores...")
         logger.debug(f"Matcha logs are being written to {matcha.log_file}")
 
-        matcha_output_file, cache_ok = matcha.match(source_file_path, target_file_path)
+        matcha.load_ontologies(source_file_path, target_file_path)
 
-        # Processor module
+        if reference_file_path is not None:
+            matcha.load_reference(reference_file_path)
 
-        logger.info(f"Processing dataset..")
-        processor = MainProcessor(
-            sampler=RandomNegativeSampler(n_samples=configs.number_of_negatives, seed=configs.seed),
-            seed=configs.seed,
+        if candidates_file_path is not None:
+            matcha.load_candidates(candidates_file_path)
+
+        matcha.match()
+
+        # Create Dataset
+
+        logger.info(f'Building Dataset...')
+
+        dataset = TabularDataset(
+            output_path=Path(output_dir_path) / "dataset",
+            matchers=matcha.matchers,
             logger=logger,
-            cache_ok=cache_ok,
         )
 
-        dataset = processor.process(
-            matcha_output_file,
-            reference_file_path,
-            candidates_file_path,
-            output_file=str(Path(output_dir_path) / "processed_dataset.csv"),
-        )
+        if matcha.reference is not None:
+            dataset.load_reference(matcha.reference)
+            dataset.load_negatives(matcha.negatives)
+        
+        dataset.load_candidates(matcha.candidates)
+        dataset.load_data(matcha.matcha_features)
+
+        dataset.process()
 
         logger.info(f"Dataset parsed")
 
@@ -116,7 +124,7 @@ class AlignmentAction(Protocol):
             logger=logger,
         )
 
-        if reference_file_path is not None:
+        if dataset.reference is not None:
             logger.info(f"Training model with {reference_file_path}")
             trainer.train(**configs.training_params.model_dump())
 

@@ -9,10 +9,11 @@ from matcha_dl.core.contracts.loss import ILoss
 from matcha_dl.core.contracts.model import IModel
 from matcha_dl.impl import losses, models
 
+from pathlib import Path
+
 
 class MatchaParams(BaseModel):
     max_heap: str = Field(config["matcha_params"]["max_heap"])
-    cardinality: int = Field(config["matcha_params"]["cardinality"])
     threshold: float = Field(config["matcha_params"]["threshold"])
 
 
@@ -59,7 +60,6 @@ class OptimizerParams(BaseModel):
 
 
 class ConfigModel(BaseModel):
-    number_of_negatives: int = Field(config["number_of_negatives"])
     seed: int = Field(config["seed"])
     device: Union[int, str] = Field(config["device"], validate_default=True)
     logging_level: int = Field(config["logging_level"], validate_default=True)
@@ -83,7 +83,7 @@ class ConfigModel(BaseModel):
             return "cpu"
 
     @classmethod
-    def load_config(cls, file_path: str) -> "ConfigModel":
+    def load_config(cls, file_path: Path) -> "ConfigModel":
         yaml_config = read_yaml(file_path)
 
         matcha_params = MatchaParams(**yaml_config.get("matcha_params", {}))
