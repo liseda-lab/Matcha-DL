@@ -1,18 +1,21 @@
 from pathlib import Path
 
 import yaml
+from deeponto import init_jvm
+
 import tarfile
 import os
 import urllib.request
 
-__matcha_url__ = "https://github.com/liseda-lab/Matcha-DL/releases/download/JARv0.1.0/matcha_jar.tar.gz"
-__matcha_dl_dir__ = Path(__file__).parent
+MATCHA_DL_DIR = Path(__file__).parent
+
+print(MATCHA_DL_DIR)
 
 # If matchaJar and dependencies don't exist, download them.
 
 def download_macha():
-    url = __matcha_url__
-    download_path = __matcha_dl_dir__ / "impl/matcha/"
+    url = "https://github.com/liseda-lab/Matcha-DL/releases/download/JARv0.1.0/matcha_jar.tar.gz"
+    download_path = MATCHA_DL_DIR / "impl/matcha/"
     filename = download_path / "macha.tar.gz"
 
     # Download the matcha directory
@@ -28,9 +31,32 @@ def download_macha():
     os.remove(str(filename))
 
 # Check if the matcha directory exists
-if not (__matcha_dl_dir__ / "impl/matcha/matcha/").exists():
+if not (MATCHA_DL_DIR / "impl/matcha/matcha/").exists():
     print("Matcha-DL jar and dependencies not found. Downloading...")
     download_macha()
+
+# Init JVM to skip prompt
+
+init_jvm("8G")
+
+## Load default configuration file
+
+
+def read_yaml(file_path: Path):
+    with open(str(file_path), "r") as file:
+        return yaml.safe_load(file)
+
+
+def get_config_path():
+    current_file = Path(__file__)
+    parent_directory = current_file.parent
+    config_path = parent_directory / "default_config.yaml"
+    return config_path
+
+
+## get current directory
+
+config = read_yaml(get_config_path())
 
 # Get AlignmentRunner
 

@@ -20,9 +20,6 @@ dill = "^0.3.8"
 lxml = "^5.2.1"
 pandas = "^2.2.2"
 sentence-transformers = "^2.7.0"
-dependency-injector-fork = "^4.42.1"
-mowl-borg = "^0.3.0"
-dgl = {url = "https://data.dgl.ai/wheels/torch-2.3/cu118/dgl-2.3.0%2Bcu118-cp310-cp310-manylinux1_x86_64.whl"}
 
 [tool.poetry.scripts]
 matchadl = "matcha_dl.delivery.cli:main"
