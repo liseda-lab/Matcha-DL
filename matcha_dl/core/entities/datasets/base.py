@@ -3,11 +3,11 @@ from pathlib import Path
 
 from typing import Optional
 
-from mowl.owlapi import OWLAPIAdapter
+# from mowl.owlapi import OWLAPIAdapter
 
 from matcha_dl.impl.dp.utils import read_table
 
-from jpype import java
+# from jpype import java
 
 import pandas as pd
 import dgl.backend as F
@@ -18,7 +18,7 @@ DataFrame = pd.DataFrame
 DataArray = Union[np.ndarray, Tuple, List, F.tensor]
 
 # OWLAPI imports
-from org.semanticweb.owlapi.model import OWLOntology
+# from org.semanticweb.owlapi.model import OWLOntology
 
 
 
@@ -45,13 +45,13 @@ class Dataset(ABC):
     def matchers(self) -> List[str]:
         return self._matchers
 
-    @property
-    def source(self) -> OWLOntology:
-        return self._source
+    # @property
+    # def source(self) -> OWLOntology:
+    #     return self._source
     
-    @property
-    def target(self) -> OWLOntology:
-        return self._target
+    # @property
+    # def target(self) -> OWLOntology:
+    #     return self._target
     
     @property
     def candidates(self) -> DataFrame:
@@ -73,19 +73,19 @@ class Dataset(ABC):
     def output_path(self) -> Path:
         return self._output_path
     
-    def load_ontologies(self, source_path: Path, target_path: Path) -> None:
+    # def load_ontologies(self, source_path: Path, target_path: Path) -> None:
         
-        adapter = OWLAPIAdapter() 
-        owl_manager = adapter.owl_manager
-        self._source = owl_manager.loadOntologyFromOntologyDocument(
-            java.io.File(source_path))
+    #     adapter = OWLAPIAdapter() 
+    #     owl_manager = adapter.owl_manager
+    #     self._source = owl_manager.loadOntologyFromOntologyDocument(
+    #         java.io.File(source_path))
         
-        self.log("#Loaded Source...", level="debug")
+    #     self.log("#Loaded Source...", level="debug")
         
-        self._target = owl_manager.loadOntologyFromOntologyDocument(
-            java.io.File(target_path))
+    #     self._target = owl_manager.loadOntologyFromOntologyDocument(
+    #         java.io.File(target_path))
         
-        self.log("#Loaded Target...", level="debug")
+    #     self.log("#Loaded Target...", level="debug")
 
     def load_candidates(self, file_path: Path) -> None:
         self._candidates = read_table(str(file_path))
