@@ -9,6 +9,7 @@
 # Test Data
 
 /tests/test_data/*
+/tests/ncit-doid/*
 
 # Ignore dist folder
 
