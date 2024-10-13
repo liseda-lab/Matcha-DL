@@ -12,6 +12,7 @@ def run_alignment(args):
         configs_file_path=Path(args.config_file).resolve() if args.config_file else None,
         reference_file_path=Path(args.reference_file).resolve() if args.reference_file else None,
         candidates_file_path=Path(args.candidates_file).resolve() if args.candidates_file else None,
+        log_file_path=Path(args.output_dir).resolve() / "matcha_dl.log" if args.save_logs else None,
     )
 
 
@@ -58,6 +59,12 @@ def parse_arguments():
         type=str,
         required=False,
         help="Please provide the path to the yaml configuration file",
+    )
+    parser.add_argument(
+        "--save_logs",
+        "-l",
+        action="store_true",
+        help="Whether to save logs",
     )
     return parser.parse_args()
 

@@ -1,0 +1,1 @@
+# TODO add file format check to api and cli to overwrite malformation errors that are hard to track

@@ -17,6 +17,7 @@ class AlignmentRunner:
         reference_file: Optional[str] = None,
         candidates_file: Optional[str] = None,
         config_file: Optional[str] = None,
+        save_logs: Optional[bool] = False,
     ):
         """
 
@@ -27,6 +28,7 @@ class AlignmentRunner:
             reference_file (str, optional): Path to the reference file. Defaults to None.
             candidates_file (str, optional): Path to the candidates file. Defaults to None.
             config_file (str, optional): Path to the configuration file. Defaults to None.
+            save_logs (bool, optional): Whether to save logs. Defaults to None.
         """
         self.source_ontology_file = source_ontology_file
         self.target_ontology_file = target_ontology_file
@@ -34,6 +36,7 @@ class AlignmentRunner:
         self.reference_file = reference_file
         self.candidates_file = candidates_file
         self.config_file = config_file
+        self.save_logs = save_logs
 
     def run_alignment(self) -> None:
 
@@ -44,6 +47,7 @@ class AlignmentRunner:
             configs_file_path=Path(self.config_file).resolve() if self.config_file else None,
             reference_file_path=Path(self.reference_file).resolve() if self.reference_file else None,
             candidates_file_path=Path(self.candidates_file).resolve() if self.candidates_file else None,
+            log_file_path=Path(self.output_dir).resolve() / "matcha_dl.log" if self.save_logs else None,
         )
 
     def validate_files(self) -> None:
