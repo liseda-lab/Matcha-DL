@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-TEST_DATA_DIR = Path("~/Matcha-DL/tests/test_data/bio-ml/ncit-doid")
+TEST_DATA_DIR = Path(__file__).parent / "ncit-doid"
 
 
 def main():
@@ -29,6 +29,7 @@ def main():
             candidates_file,
             "-r",
             reference_file,
+            "-l",
         ],
         check=True,
     )
