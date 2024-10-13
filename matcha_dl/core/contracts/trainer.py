@@ -7,8 +7,8 @@ from torch.optim import Optimizer as TorchOptimizer
 
 from matcha_dl.core.contracts.loss import ILoss
 from matcha_dl.core.contracts.stopper import IStopper
-from matcha_dl.core.entities.datasets.base import MlpDataset
-from matcha_dl.impl.dp.utils import fill_anchored_scores
+from matcha_dl.core.entities.datasets import TabularDataset
+from matcha_dl.impl.dp.utils import fill_anchored_scores, read_table
 
 EntityMapping = DeepOntoEntityMapping
 
@@ -39,7 +39,7 @@ class ITrainer:
 
     def __init__(
         self,
-        dataset: MlpDataset,
+        dataset: TabularDataset,
         model: Type[Module],
         loss: Type[ILoss],
         optimizer: Type[Optimizer],
@@ -75,7 +75,7 @@ class ITrainer:
         # Load checkpoint if exists
 
         if use_last_checkpoint:
-            if self.checkpoints_dir.is_dir():
+            if self.checkpoints_dir.is_dir() and any(self.checkpoints_dir.iterdir()):
                 self.load_checkpoint()
                 self.log(f"Loaded checkpoint {self._get_last_checkpoint()}")
             else:
@@ -96,7 +96,7 @@ class ITrainer:
         return th.device(self._device if th.cuda.is_available() else "cpu")
 
     @property
-    def dataset(self) -> MlpDataset:
+    def dataset(self) -> TabularDataset:
         return self._dataset
 
     @property
@@ -151,10 +151,12 @@ class ITrainer:
     def predict(self, threshold: Optional[float] = 0.7, **kwargs) -> List[EntityMapping]:
         pass
 
-    def save_alignment(self, preds: List[EntityMapping]):
+    def save_alignment(self, preds: List[EntityMapping], candidates_one2many_path: Optional[Path] = None) -> None:
 
-        if self.dataset.candidates is not None:
-            return self._save_local_alignment(preds)
+        if candidates_one2many_path is not None:
+            candidates_one2many = read_table(str(candidates_one2many_path))
+            candidates_one2many.columns = ["Src", "Tgt", "Candidates"]
+            return self._save_local_alignment(preds, candidates_one2many)
 
         else:
             return self._save_global_alignment(preds)
@@ -180,9 +182,11 @@ class ITrainer:
             global_dir, sep="\t", index=False
         )
 
-    def _save_local_alignment(self, preds: List[EntityMapping]):
+    def _save_local_alignment(self, preds: List[EntityMapping], candidates_one2many: pd.DataFrame):
 
-        ranking_results = fill_anchored_scores(self.dataset.candidates.values, preds)
+        # candidates is now a 1-1 format for this the original candidates are required
+
+        ranking_results = fill_anchored_scores(candidates_one2many.values, preds)
 
         local_dir = str(self.alignment_dir) + f"/{'src2tgt.maps'}_local.tsv"
 
@@ -196,8 +200,12 @@ class ITrainer:
 
         if checkpoint == "last":
             checkpoint = "{}.pt".format(self._get_last_checkpoint())
+        
+        else:
+            if not (self.checkpoints_dir / checkpoint).exists():
+                raise FileNotFoundError(f"Checkpoint {checkpoint} not found")
 
-        checkpoint = th.load((self.checkpoints_dir / checkpoint).resolve())
+        checkpoint = th.load((self.checkpoints_dir / checkpoint).resolve(), weights_only=False)
 
         self._model.load_state_dict(checkpoint["model_state_dict"])
         self._optimizer.load_state_dict(checkpoint["optimizer_state_dict"])

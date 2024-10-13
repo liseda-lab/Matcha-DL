@@ -52,10 +52,7 @@ class MLPTrainer(ITrainer):
         writer.flush()
         writer.close()
 
-    def repair(self, **kwargs):
-
-        # TODO add AML repair
-        pass
+        self.save_checkpoint()
 
     def predict(self, threshold: Optional[float] = 0.7, **kwargs) -> List[EntityMapping]:
 
@@ -75,7 +72,7 @@ class MLPTrainer(ITrainer):
             df["Scores"] = logits.cpu()
 
             return [
-                EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["Scores"])
+                EntityMapping(dp["Src"], dp["Tgt"], "=", dp["Scores"])
                 for _, dp in df.iterrows()
                 if dp["Scores"] >= threshold
             ]
@@ -86,7 +83,7 @@ class MLPTrainer(ITrainer):
             df["matcha"] = np.array(df["Features"].values.tolist()).max(axis=1)
 
             return [
-                EntityMapping(dp["SrcEntity"], dp["TgtEntity"], "=", dp["matcha"])
+                EntityMapping(dp["Src"], dp["Tgt"], "=", dp["matcha"])
                 for _, dp in df.iterrows()
                 if dp["matcha"] >= threshold
             ]
