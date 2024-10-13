@@ -21,6 +21,7 @@ class AlignmentAction(Protocol):
         configs_file_path: Optional[Path] = None,
         reference_file_path: Optional[Path] = None,
         candidates_file_path: Optional[Path] = None,
+        log_file_path: Optional[Path] = None,
     ) -> None:
 
         start_time = time.time()
@@ -38,7 +39,17 @@ class AlignmentAction(Protocol):
         logger = logging.getLogger("matcha-dl")
         logger.setLevel(configs.logging_level)
 
+        if log_file_path is not None:
+            file_handler = logging.FileHandler(log_file_path)
+            file_handler.setLevel(configs.logging_level)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+            logger.info(f"Logging to file {log_file_path}")
+
         logger.debug(f"Logging level set to {configs.logging_level}")
+
+        # log configs state
 
         if configs_file_path is not None:
             logger.info(f"Using configuration from {configs_file_path}")
@@ -54,13 +65,14 @@ class AlignmentAction(Protocol):
         logger.info(f"Matching {source_file_path} and {target_file_path}")
 
         matcha = Matcha(
-            output_path=output_dir_path / "matcha",
+            output_path=output_dir_path,
             logger=logger,
             **configs.matcha_params.model_dump(),
+            cache_ok=configs.use_file_cache,
         )
 
         logger.info(f"Computing matcha scores...")
-        logger.debug(f"Matcha logs are being written to {matcha.log_file}")
+        logger.debug(f"Matcha error logs are being written to {matcha.log_file}")
 
         matcha.load_ontologies(source_file_path, target_file_path)
 
@@ -68,6 +80,7 @@ class AlignmentAction(Protocol):
             matcha.load_reference(reference_file_path)
 
         if candidates_file_path is not None:
+            print(candidates_file_path)
             matcha.load_candidates(candidates_file_path)
 
         matcha.match()
@@ -77,9 +90,10 @@ class AlignmentAction(Protocol):
         logger.info(f'Building Dataset...')
 
         dataset = TabularDataset(
-            output_path=Path(output_dir_path) / "dataset",
+            output_path=output_dir_path,
             matchers=matcha.matchers,
             logger=logger,
+            cache_ok=configs.use_file_cache,
         )
 
         if matcha.reference is not None:
@@ -91,7 +105,9 @@ class AlignmentAction(Protocol):
 
         dataset.process()
 
-        logger.info(f"Dataset parsed")
+        logger.info(f"Dataset ready")
+
+        dataset.save()
 
         # Trainer module
 
@@ -134,10 +150,10 @@ class AlignmentAction(Protocol):
 
         logger.info(f"Writing alignment...")
 
-        trainer.save_alignment(alignment)
+        trainer.save_alignment(alignment, candidates_file_path)
 
         logger.info(f"Alignment written to {trainer.alignment_dir}")
 
         end_time = time.time()
         elapsed_time = end_time - start_time
-        logger.info(f"Alignment completed in {elapsed_time} seconds")
+        logger.info(f"Alignment completed in {elapsed_time:.3f} seconds")
