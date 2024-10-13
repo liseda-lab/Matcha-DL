@@ -10,12 +10,12 @@ from matcha_dl.impl.dp.utils import read_table
 # from jpype import java
 
 import pandas as pd
-import dgl.backend as F
+# import dgl.backend as F
 import numpy as np
 from typing import List, Tuple, Union, Dict
 
 DataFrame = pd.DataFrame
-DataArray = Union[np.ndarray, Tuple, List, F.tensor]
+# DataArray = Union[np.ndarray, Tuple, List, F.tensor]
 
 # OWLAPI imports
 # from org.semanticweb.owlapi.model import OWLOntology
@@ -88,18 +88,27 @@ class Dataset(ABC):
     #     self.log("#Loaded Target...", level="debug")
 
     def load_candidates(self, file_path: Path) -> None:
+
+        if not file_path.exists():
+            raise FileNotFoundError(f"Candidates file not found at {file_path}")
+                                    
         self._candidates = read_table(str(file_path))
-        self._candidates.columns = ["Src", "Tgt", "Candidates"]
+        self._candidates.columns = ["Src", "Tgt", "Label"]
 
         self.log("#Loaded Candidates...", level="debug")
 
     def load_reference(self, file_path: Path) -> None:
+        
         self._reference = read_table(str(file_path))
         self._reference.columns = ["Src", "Tgt", "Label"]
 
         self.log("#Loaded Reference...", level="debug")
 
     def load_negatives(self, file_path: str) -> None:
+
+        if not file_path.exists():
+            raise FileNotFoundError(f"Negatives file not found at {file_path}")
+        
         self._negatives = read_table(str(file_path))
         self._negatives.columns = ["Src", "Tgt", "Label"]
 
@@ -108,7 +117,10 @@ class Dataset(ABC):
     
     def load_data(self, matcha_features_file: Path) -> None:
 
-        df = read_table(matcha_features_file)
+        if not matcha_features_file.exists():
+            raise FileNotFoundError(f"Matcha Features file not found at {matcha_features_file}")
+
+        df = read_table(str(matcha_features_file))
         df.columns = ["Src", "Tgt"] + self.matchers
 
         self._matcha_features = {
@@ -128,8 +140,13 @@ class Dataset(ABC):
         else:
             print(msg)
 
+    # For future refactor
+    # @abstractmethod
+    # def __getitem__(self, idx: int) -> Tuple[DataArray, DataArray]:
+    #     pass
+
     @abstractmethod
-    def __getitem__(self, idx: int) -> Tuple[DataArray, DataArray]:
+    def __getitem__(self, idx: int, kind: str = "train") -> Tuple[np.ndarray, np.ndarray]:
         pass
 
     @abstractmethod
@@ -152,12 +169,20 @@ class Dataset(ABC):
     def process(self) -> None:
         pass
 
+    # For future refactor
+    # @abstractmethod
+    # def x(self, kind: Optional[str] = "train") -> DataArray:
+    #     pass
+
+    # @abstractmethod
+    # def y(self, kind="train") -> DataArray:
+    #     pass
+
     @abstractmethod
-    def x(self, kind: Optional[str] = "train") -> DataArray:
+    def x(self, kind: Optional[str] = "train") -> np.ndarray:
         pass
 
     @abstractmethod
-    def y(self, kind="train") -> DataArray:
+    def y(self, kind="train") -> np.ndarray:
         pass
-
 

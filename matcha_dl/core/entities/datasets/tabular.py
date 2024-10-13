@@ -50,17 +50,34 @@ class TabularDataset(Dataset):
     def __str__(self) -> str:
         return self.dataframe.__str__()
 
+    # In Future X and Y shoulf return DGL.backend.F tensor
+
     def x(self, kind: Optional[str] = "train") -> np.ndarray:
+
+        if self.dataframe is None:
+            raise ValueError("Dataset is empty.")
+
         return np.array(self.dataframe[self.dataframe[kind]]["Features"].values.tolist())
 
     def y(self, kind="train") -> np.ndarray:
-        return self.dataframe[self.dataframe[kind]]["Labels"].values
+
+        if self.dataframe is None:
+            raise ValueError("Dataset is empty.")
+
+        return self.dataframe[self.dataframe[kind]]["Label"].values
 
     def save(self) -> Path:
 
+        if self.dataframe is None:
+            raise ValueError("Dataset is empty.")
+        
+        if self.has_cache():
+            self.log("#Dataset already saved skyping...", level="debug")
+            return self._df_save_path
+
         self.dataframe.to_csv(str(self._df_save_path), index=False)
 
-        self.log("#Saved Dataset...", level="debug")
+        self.log(f"#Dataset saved to {self._df_save_path}", level="debug")
 
         return self._df_save_path
     
@@ -84,7 +101,10 @@ class TabularDataset(Dataset):
 
         self.log("Creating Inference set", level="debug")
 
-        inference_set = self._get_cands()
+        if self.candidates is None:
+            raise ValueError("Candidates not loaded.")
+
+        inference_set = self.candidates
 
         # get features from matcha
 
@@ -96,6 +116,9 @@ class TabularDataset(Dataset):
         inference_set["inference"] = True
         
         if self.reference is not None:
+
+            if self.negatives is None:
+                raise ValueError("Negatives not loaded.")
 
             # get training set
             self.log("Creating Training Set...", level="debug")
@@ -130,21 +153,11 @@ class TabularDataset(Dataset):
 
             dataset = inference_set
 
-        dataset.rename(columns={"Score": "Labels"}, inplace=True)
-
         self.log("#Processing Done", level="debug")
 
         self._df = dataset
 
         return self
-
-    def _get_cands(self) -> pd.DataFrame:
-
-        return pd.DataFrame([
-                [source, cand[0], None]
-                for source, _, target_cands in self.candidates.values
-                for cand in literal_eval(target_cands)
-            ], columns=["Src", "Tgt", "Score"])
 
             
 
