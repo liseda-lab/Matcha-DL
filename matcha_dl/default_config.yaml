@@ -12,6 +12,9 @@ device: 0
 
 # Alignment Parameters
 
+## Used cached files to skip computations if available.
+use_file_cache: False
+
 ## Use the last checkpoint to continue training
 use_last_checkpoint: False
 
@@ -23,6 +26,8 @@ matcha_params:
   max_heap: 64G
   ## Filter to generate candidates for global alignment.
   threshold: 0.5
+  ## Matchers ro be used to calculate the similarity between the candidates.
+  matchers: [LM, BKM, SM, WM, LLM]
 
 training_params:
   epochs: 10

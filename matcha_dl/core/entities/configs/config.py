@@ -15,6 +15,7 @@ from pathlib import Path
 class MatchaParams(BaseModel):
     max_heap: str = Field(config["matcha_params"]["max_heap"])
     threshold: float = Field(config["matcha_params"]["threshold"])
+    matchers: list = Field(config["matcha_params"]["matchers"])
 
 
 class TrainingParams(BaseModel):
@@ -63,6 +64,7 @@ class ConfigModel(BaseModel):
     seed: int = Field(config["seed"])
     device: Union[int, str] = Field(config["device"], validate_default=True)
     logging_level: int = Field(config["logging_level"], validate_default=True)
+    use_file_cache: bool = Field(config["use_file_cache"])
     use_last_checkpoint: bool = Field(config["use_last_checkpoint"])
     threshold: float = Field(config["threshold"])
     matcha_params: MatchaParams = MatchaParams()
