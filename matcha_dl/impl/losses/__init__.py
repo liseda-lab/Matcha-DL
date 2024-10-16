@@ -1,2 +1,1 @@
-from .bceloss import BCEWeightedLoss
-from torch.nn import BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
+from .bceloss import BCEWeightedLoss, BCELoss, BCEWithLogitsLoss

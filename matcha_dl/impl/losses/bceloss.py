@@ -5,7 +5,7 @@ from matcha_dl.core.contracts.loss import ILoss, Tensor, torch, nn
 F = nn.functional
 
 
-class BCEWeightedLoss(nn.Module):
+class BCEWeightedLoss(nn.BCELoss, ILoss):
     def __init__(self, pos_weight=None, reduction='mean'):
         """
         Initialize the custom loss function.
@@ -54,3 +54,37 @@ class BCEWeightedLoss(nn.Module):
             return bce_loss.sum()
         else:
             return bce_loss  # No reduction, return loss per sample
+
+class BCELoss(nn.BCELoss, ILoss):
+    def forward(self, inputs: Tensor, targets: Tensor) -> Tensor:
+        """
+        Forward pass for the custom loss function.
+
+        Args:
+            inputs (Tensor): Model output (logits or probabilities). 
+                             The user should ensure this matches the format needed.
+                             If logits, ensure you apply sigmoid before calling this function.
+            targets (Tensor): Ground truth binary labels (0 or 1). 
+                              Shape: same as inputs.
+                              
+        Returns:
+            Tensor: The computed loss.
+        """
+        return super().forward(inputs, targets)
+
+class BCEWithLogitsLoss(nn.BCEWithLogitsLoss, ILoss):
+    def forward(self, inputs: Tensor, targets: Tensor) -> Tensor:
+        """
+        Forward pass for the custom loss function.
+
+        Args:
+            inputs (Tensor): Model output (logits or probabilities). 
+                             The user should ensure this matches the format needed.
+                             If logits, ensure you apply sigmoid before calling this function.
+            targets (Tensor): Ground truth binary labels (0 or 1). 
+                              Shape: same as inputs.
+                              
+        Returns:
+            Tensor: The computed loss.
+        """
+        return super().forward(inputs, targets)
