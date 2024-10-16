@@ -42,7 +42,8 @@ model:
 loss:
   name: BCELossWeighted
   params:
-    weight: [0.01, 0.99]
+    pos_weight: 1.0
+    reduction: mean
 
 optimizer:
   name: Adam
