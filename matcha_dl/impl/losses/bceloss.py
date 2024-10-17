@@ -6,7 +6,7 @@ F = nn.functional
 
 
 class BCEWeightedLoss(nn.BCELoss, ILoss):
-    def __init__(self, pos_weight=None, reduction='mean'):
+    def __init__(self, pos_weight=None, reduction='mean', device: Union[str, int]=None, **kwargs):
         """
         Initialize the custom loss function.
 
@@ -22,7 +22,9 @@ class BCEWeightedLoss(nn.BCELoss, ILoss):
         """
         super(BCEWeightedLoss, self).__init__()
         
-        self.pos_weight = pos_weight
+        if pos_weight is not None:
+            self.pos_weight = torch.tensor(pos_weight).to(device)
+        
         self.reduction = reduction
 
     def forward(self, inputs, targets):
@@ -39,6 +41,7 @@ class BCEWeightedLoss(nn.BCELoss, ILoss):
         Returns:
             Tensor: The computed loss.
         """
+        
         # Compute unweighted binary cross-entropy loss for each sample
         bce_loss = F.binary_cross_entropy(inputs, targets, reduction='none')
 
@@ -56,6 +59,20 @@ class BCEWeightedLoss(nn.BCELoss, ILoss):
             return bce_loss  # No reduction, return loss per sample
 
 class BCELoss(nn.BCELoss, ILoss):
+    
+    def __init__(self, reduction='mean', device: Union[str, int]=None, **kwargs):
+        """
+        Initialize the custom loss function.
+
+        Args:
+            reduction (str, optional): Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'.
+                                       'none': No reduction will be applied.
+                                       'mean': The output will be averaged.
+                                       'sum': The output will be summed.
+                                       Default: 'mean'
+        """
+        super(BCELoss, self).__init__(reduction=reduction, **kwargs)
+
     def forward(self, inputs: Tensor, targets: Tensor) -> Tensor:
         """
         Forward pass for the custom loss function.
@@ -73,6 +90,26 @@ class BCELoss(nn.BCELoss, ILoss):
         return super().forward(inputs, targets)
 
 class BCEWithLogitsLoss(nn.BCEWithLogitsLoss, ILoss):
+
+    def __init__(self, pos_weight, reduction='mean', device: Union[str, int]=None, **kwargs):
+        
+        """
+        Initialize the custom loss function.
+
+        Args:
+            reduction (str, optional): Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'.
+                                       'none': No reduction will be applied.
+                                       'mean': The output will be averaged.
+                                       'sum': The output will be summed.
+                                       Default: 'mean'
+        """
+
+        if pos_weight is not None:
+            self.pos_weight = torch.tensor(pos_weight).to(device)
+
+        super(BCEWithLogitsLoss, self).__init__(pos_weight=pos_weight, reduction=reduction, **kwargs)
+
+
     def forward(self, inputs: Tensor, targets: Tensor) -> Tensor:
         """
         Forward pass for the custom loss function.

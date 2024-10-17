@@ -80,7 +80,6 @@ class AlignmentAction(Protocol):
             matcha.load_reference(reference_file_path)
 
         if candidates_file_path is not None:
-            print(candidates_file_path)
             matcha.load_candidates(candidates_file_path)
 
         matcha.match()

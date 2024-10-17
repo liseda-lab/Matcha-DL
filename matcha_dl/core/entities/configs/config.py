@@ -25,7 +25,7 @@ class TrainingParams(BaseModel):
 
 
 class ModelParams(BaseModel):
-    model: Type[IModel] = Field(config["model"]["name"], validate_default=True)
+    model: Type[IModel] = Field(config["model"]["model"], validate_default=True)
     params: dict = Field(config["model"]["params"])
 
     @field_validator("model", mode="before")
@@ -37,19 +37,21 @@ class ModelParams(BaseModel):
 
 
 class LossParams(BaseModel):
-    loss: Type[ILoss] = Field(config["loss"]["name"], validate_default=True)
+    loss: Type[ILoss] = Field(config["loss"]["loss"], validate_default=True)
     params: dict = Field(config["loss"]["params"])
 
     @field_validator("loss", mode="before")
     def parse_loss(loss_name: str) -> ILoss:
         if hasattr(losses, loss_name):
+            print(loss_name)
+            print(getattr(losses, loss_name))
             return getattr(losses, loss_name)
         else:
             raise ValueError(f"Loss {loss_name} not recognized as matcha-dl loss")
 
 
 class OptimizerParams(BaseModel):
-    optimizer: Type[optim.Optimizer] = Field(config["optimizer"]["name"], validate_default=True)
+    optimizer: Type[optim.Optimizer] = Field(config["optimizer"]["optimizer"], validate_default=True)
     params: dict = Field(config["optimizer"]["params"])
 
     @field_validator("optimizer", mode="before")
