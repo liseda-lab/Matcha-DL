@@ -44,8 +44,6 @@ class LossParams(BaseModel):
     @field_validator("loss", mode="before")
     def parse_loss(loss_name: str) -> ILoss:
         if hasattr(losses, loss_name):
-            print(loss_name)
-            print(getattr(losses, loss_name))
             return getattr(losses, loss_name)
         else:
             raise ValueError(f"Loss {loss_name} not recognized as matcha-dl loss")

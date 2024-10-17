@@ -231,7 +231,7 @@ class IMatcha:
             comunicate_matcha_process(matcha_process, command, 'matchers set')
 
         def generate_negatives(matcha_process):
-            command = f"Negatives {self.reference} {self.negatives}"
+            command = f"Negatives {self.reference} {self.negatives} {self.negcardinality}"
             comunicate_matcha_process(matcha_process, command, 'finished generating negatives')
 
         def generate_candidates(matcha_process):
@@ -267,7 +267,6 @@ class IMatcha:
             '-s', str(self.source),
             '-t', str(self.target),
             '-p', sys.executable,
-            '-c', str(self.negcardinality)
         ]
 
         try:
