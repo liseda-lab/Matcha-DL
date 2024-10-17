@@ -23,6 +23,7 @@ class IMatcha:
         max_heap: str,
         output_path: Path,
         matchers: List[str],
+        negcardinality: int,
         **kwargs,
     ) -> None:
         """
@@ -40,6 +41,7 @@ class IMatcha:
         self._output_path = output_path / "matcha"
         self._output_path.mkdir(parents=True, exist_ok=True)
         self._matchers = matchers
+        self._negcardinality = negcardinality
 
         self._source = None
         self._target = None
@@ -124,6 +126,10 @@ class IMatcha:
     @property
     def max_heap(self) -> str:
         return self._max_heap
+
+    @property
+    def negcardinality(self) -> int:
+        return self._negcardinality
     
     def load_ontologies(self, source_path: Path, target_path: Path) -> None:
 
@@ -191,7 +197,7 @@ class IMatcha:
                     line = output_queue.get(timeout=1)
                     self.log(f"[Matcha] {line}", level="debug")
                     # Check for a specific response indicating the command is done
-                    if termination in line:
+                    if termination.lower() in line.lower():
                         break
                 except queue.Empty:
                     # No output received within the timeout period
@@ -222,19 +228,19 @@ class IMatcha:
         
         def add_matchers(matcha_process):
             command = f"Matchers {{{', '.join(self.matchers)}}}"
-            comunicate_matcha_process(matcha_process, command)
+            comunicate_matcha_process(matcha_process, command, 'matchers set')
 
         def generate_negatives(matcha_process):
             command = f"Negatives {self.reference} {self.negatives}"
-            comunicate_matcha_process(matcha_process, command, 'Finished generating negatives')
+            comunicate_matcha_process(matcha_process, command, 'finished generating negatives')
 
         def generate_candidates(matcha_process):
             command = f"Match {self.threshold} {self.candidates}"
-            comunicate_matcha_process(matcha_process, command, 'Finished matching')
+            comunicate_matcha_process(matcha_process, command, 'finished matching')
 
         def generate_scores(matcha_process, pairs_file):
             command = f"Score {pairs_file} {self.matcha_features}"
-            comunicate_matcha_process(matcha_process, command, 'Finished calculating scores')
+            comunicate_matcha_process(matcha_process, command, 'finished calculating scores')
 
         if self.has_cache:
 
@@ -261,6 +267,7 @@ class IMatcha:
             '-s', str(self.source),
             '-t', str(self.target),
             '-p', sys.executable,
+            '-c', str(self.negcardinality)
         ]
 
         try:

@@ -25,7 +25,7 @@ matcha_params:
   ## JAVA Heap Size
   max_heap: 64G
   ## Filter to generate candidates for global alignment.
-  threshold: 0.5
+  threshold: 0.9
   ## Matchers ro be used to calculate the similarity between the candidates.
   matchers: [LM, BKM, SM, WM, LLM]
   # Cardinality of negatives in the training set
@@ -37,18 +37,17 @@ training_params:
   save_interval: 5
 
 model:
-  name: MlpClassifier
+  model: MlpClassifier
   params:
     layers: [128, 256, 128]
 
 loss:
-  name: BCEWeightedLoss
+  loss: BCEWeightedLoss
   params:
     pos_weight: 1.0
     reduction: mean
 
 optimizer:
-  name: Adam
+  optimizer: Adam
   params:
     lr: 0.001
-
